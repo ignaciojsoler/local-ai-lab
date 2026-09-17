@@ -6,12 +6,14 @@
 
 **Architecture:** Astro in static mode renders prose from an MDX content collection; each use case mounts a single React island. All inference happens inside a Web Worker driven by a transport-agnostic client, so the main thread never blocks. A shared `demo-kit` supplies loading, progress, backend reporting, and result rendering to every demo.
 
-**Tech Stack:** Astro 5 (static), React 19 islands, Tailwind CSS, `@huggingface/transformers` v3, Vitest + Testing Library, deployed to Vercel.
+**Tech Stack:** Astro 5 (static), React 19 islands, Tailwind CSS, `@huggingface/transformers` v3, Vitest + Testing Library, Bun as package manager and script runner, deployed to Vercel.
 
 **Spec:** `docs/superpowers/specs/2026-09-17-local-ai-lab-design.md`
 
 ## Global Constraints
 
+- **Bun is the package manager and script runner.** Use `bun install`, `bun add`, `bun add -d`, `bunx`, and `bun run <script>`. Never use npm, npx, or yarn, and never commit `package-lock.json` or `yarn.lock` — the lockfile is `bun.lock`.
+- Run the test suite with `bun run test`, never `bun test`. Bare `bun test` invokes Bun's own test runner, which does not load `vitest.config.ts` and will not pick up the jsdom environment or the setup file.
 - All code, comments, documentation, README, UI copy, examples, and commit messages are written in **English**. The repository contains no Spanish.
 - Astro runs in `output: 'static'`. No adapter, no serverless functions, no server-side code of any kind.
 - No model is fetched on page load. Every download is triggered by an explicit user action that states the size first.
@@ -34,7 +36,7 @@
 
 **Interfaces:**
 - Consumes: nothing
-- Produces: a working `npm run dev`, `npm run build`, and `npm test`; React islands enabled via `@astrojs/react`
+- Produces: a working `bun run dev`, `bun run build`, and `bun run test`; React islands enabled via `@astrojs/react`
 
 - [ ] **Step 1: Scaffold from Astro Nano into the existing repo**
 
@@ -51,10 +53,10 @@ rm -rf /tmp/astro-nano
 - [ ] **Step 2: Upgrade Astro and add React, Vitest, transformers.js**
 
 ```bash
-npx @astrojs/upgrade
-npx astro add react --yes
-npm install @huggingface/transformers
-npm install -D vitest jsdom @testing-library/react @testing-library/dom @testing-library/jest-dom @vitejs/plugin-react
+bunx @astrojs/upgrade
+bunx astro add react --yes
+bun add @huggingface/transformers
+bun add -d vitest jsdom @testing-library/react @testing-library/dom @testing-library/jest-dom @vitejs/plugin-react
 ```
 
 - [ ] **Step 3: Configure Vitest**
@@ -107,17 +109,17 @@ describe("test harness", () => {
 
 - [ ] **Step 5: Run the test suite and the build**
 
-Run: `npm test`
+Run: `bun run test`
 Expected: PASS, 1 test.
 
-Run: `npm run build`
+Run: `bun run build`
 Expected: the build completes and writes `dist/`.
 
 - [ ] **Step 6: Strip unused theme features**
 
 Astro Nano ships a blog and a work/projects section that this site does not use. Delete their routes and content directories, and remove their links from the site navigation component. Keep the layout, the typography, and the theme toggle scaffolding.
 
-Run: `npm run build`
+Run: `bun run build`
 Expected: the build still completes with no broken-link or missing-collection errors.
 
 - [ ] **Step 7: Set the color tokens**
@@ -188,7 +190,7 @@ describe("detectBackend", () => {
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `npx vitest run src/lib/backend.test.ts`
+Run: `bunx vitest run src/lib/backend.test.ts`
 Expected: FAIL — cannot resolve `./backend`.
 
 - [ ] **Step 3: Write the implementation**
@@ -219,7 +221,7 @@ export async function detectBackend(): Promise<Backend> {
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `npx vitest run src/lib/backend.test.ts`
+Run: `bunx vitest run src/lib/backend.test.ts`
 Expected: PASS, 4 tests.
 
 - [ ] **Step 5: Commit**
@@ -365,7 +367,7 @@ describe("createInferenceClient", () => {
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `npx vitest run src/lib/inference-client.test.ts`
+Run: `bunx vitest run src/lib/inference-client.test.ts`
 Expected: FAIL — cannot resolve `./inference-client`.
 
 - [ ] **Step 3: Write the client implementation**
@@ -473,7 +475,7 @@ export function createInferenceClient(config: Config): InferenceClient {
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `npx vitest run src/lib/inference-client.test.ts`
+Run: `bunx vitest run src/lib/inference-client.test.ts`
 Expected: PASS, 6 tests.
 
 - [ ] **Step 5: Write the worker**
@@ -552,7 +554,7 @@ self.addEventListener("message", async (event: MessageEvent<IncomingMessage>) =>
 rm src/lib/smoke.test.ts
 ```
 
-Run: `npm test`
+Run: `bun run test`
 Expected: PASS, 10 tests across two files.
 
 - [ ] **Step 7: Commit**
@@ -707,7 +709,7 @@ describe("useModel", () => {
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `npx vitest run src/components/demo-kit/useModel.test.tsx`
+Run: `bunx vitest run src/components/demo-kit/useModel.test.tsx`
 Expected: FAIL — cannot resolve `./useModel`.
 
 - [ ] **Step 3: Write the implementation**
@@ -818,7 +820,7 @@ Note that `load` sets `status` to `"loading"` before awaiting `detectBackend()`,
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `npx vitest run src/components/demo-kit/useModel.test.tsx`
+Run: `bunx vitest run src/components/demo-kit/useModel.test.tsx`
 Expected: PASS, 5 tests.
 
 - [ ] **Step 5: Commit**
@@ -969,12 +971,12 @@ describe("DemoShell", () => {
 `userEvent` needs installing:
 
 ```bash
-npm install -D @testing-library/user-event
+bun add -d @testing-library/user-event
 ```
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `npx vitest run src/components/demo-kit/demo-kit.test.tsx`
+Run: `bunx vitest run src/components/demo-kit/demo-kit.test.tsx`
 Expected: FAIL — the four component modules do not resolve.
 
 - [ ] **Step 3: Write BackendBadge**
@@ -1147,13 +1149,13 @@ export function DemoShell({
 
 - [ ] **Step 7: Run the tests to verify they pass**
 
-Run: `npx vitest run src/components/demo-kit/demo-kit.test.tsx`
+Run: `bunx vitest run src/components/demo-kit/demo-kit.test.tsx`
 Expected: PASS, 10 tests.
 
 - [ ] **Step 8: Commit**
 
 ```bash
-git add src/components/demo-kit package.json package-lock.json
+git add src/components/demo-kit package.json bun.lock
 git commit -m "feat: add shared demo shell, loader, badge, and confidence bar"
 ```
 
@@ -1175,7 +1177,7 @@ git commit -m "feat: add shared demo shell, loader, badge, and confidence bar"
 - [ ] **Step 1: Enable MDX**
 
 ```bash
-npx astro add mdx --yes
+bunx astro add mdx --yes
 ```
 
 - [ ] **Step 2: Define the collection**
@@ -1299,7 +1301,7 @@ Verify the real size in Task 7 Step 1 and correct `sizeLabel` if it differs.
 
 - [ ] **Step 7: Verify the build**
 
-Run: `npm run build`
+Run: `bun run build`
 Expected: the build completes and emits `dist/demos/sentiment-analysis/index.html`.
 
 - [ ] **Step 8: Commit**
@@ -1396,7 +1398,7 @@ describe("SentimentDemo", () => {
 
 - [ ] **Step 3: Run the test to verify it fails**
 
-Run: `npx vitest run src/components/demos/SentimentDemo.test.tsx`
+Run: `bunx vitest run src/components/demos/SentimentDemo.test.tsx`
 Expected: FAIL — cannot resolve `./SentimentDemo`.
 
 - [ ] **Step 4: Write the implementation**
@@ -1476,7 +1478,7 @@ export default function SentimentDemo({
 
 - [ ] **Step 5: Run the test to verify it passes**
 
-Run: `npx vitest run src/components/demos/SentimentDemo.test.tsx`
+Run: `bunx vitest run src/components/demos/SentimentDemo.test.tsx`
 Expected: PASS, 3 tests.
 
 - [ ] **Step 6: Mount the island and write the page prose**
@@ -1534,7 +1536,7 @@ If `frontmatter` is not exposed in this Astro version's MDX scope, pass the lite
 
 - [ ] **Step 7: Verify it works in a browser**
 
-Run: `npm run dev`
+Run: `bun run dev`
 
 Open `/demos/sentiment-analysis`, confirm that nothing downloads until the load button is pressed, that the progress bar advances, that a classification returns, and that the backend badge names a backend and a duration. Reload and confirm the second load is near-instant from the IndexedDB cache.
 
@@ -1646,7 +1648,7 @@ if (!globalThis.URL.createObjectURL) {
 
 - [ ] **Step 4: Run the test to verify it fails**
 
-Run: `npx vitest run src/components/demos/ImageClassificationDemo.test.tsx`
+Run: `bunx vitest run src/components/demos/ImageClassificationDemo.test.tsx`
 Expected: FAIL — cannot resolve `./ImageClassificationDemo`.
 
 - [ ] **Step 5: Write the implementation**
@@ -1740,7 +1742,7 @@ export default function ImageClassificationDemo({
 
 - [ ] **Step 6: Run the test to verify it passes**
 
-Run: `npx vitest run src/components/demos/ImageClassificationDemo.test.tsx`
+Run: `bunx vitest run src/components/demos/ImageClassificationDemo.test.tsx`
 Expected: PASS, 3 tests.
 
 - [ ] **Step 7: Write the content entry**
@@ -1764,7 +1766,7 @@ The Python snippet uses `pipeline("image-classification", model="google/vit-base
 
 - [ ] **Step 8: Verify in a browser and commit**
 
-Run: `npm run dev`, open `/demos/image-classification`, and confirm sample images and an uploaded file both classify correctly.
+Run: `bun run dev`, open `/demos/image-classification`, and confirm sample images and an uploaded file both classify correctly.
 
 ```bash
 git add -A
@@ -1864,7 +1866,7 @@ describe("ZeroShotDemo", () => {
 
 - [ ] **Step 3: Run the test to verify it fails**
 
-Run: `npx vitest run src/components/demos/ZeroShotDemo.test.tsx`
+Run: `bunx vitest run src/components/demos/ZeroShotDemo.test.tsx`
 Expected: FAIL — cannot resolve `./ZeroShotDemo`.
 
 - [ ] **Step 4: Write the implementation**
@@ -1958,7 +1960,7 @@ export default function ZeroShotDemo({
 
 - [ ] **Step 5: Run the test to verify it passes**
 
-Run: `npx vitest run src/components/demos/ZeroShotDemo.test.tsx`
+Run: `bunx vitest run src/components/demos/ZeroShotDemo.test.tsx`
 Expected: PASS, 3 tests.
 
 - [ ] **Step 6: Write the content entry**
@@ -1980,7 +1982,7 @@ This page carries the most explanatory weight of the three, because the capabili
 
 - [ ] **Step 7: Verify in a browser and commit**
 
-Run: `npm run dev`, open `/demos/zero-shot-classification`, and confirm that changing the labels changes the ranking.
+Run: `bun run dev`, open `/demos/zero-shot-classification`, and confirm that changing the labels changes the ranking.
 
 ```bash
 git add -A
@@ -2033,14 +2035,14 @@ Rewrite `src/pages/index.astro` to introduce the project in a short paragraph �
 
 - [ ] **Step 4: Write the README**
 
-Create `README.md` in English covering: what the project is, the stack, how to run it locally (`npm install`, `npm run dev`, `npm test`, `npm run build`), the architecture in a short paragraph, how to add a new demo (one MDX entry plus one island component), and a note that the cross-origin isolation headers in `vercel.json` are required for multi-threaded WASM.
+Create `README.md` in English covering: what the project is, the stack, how to run it locally with Bun (`bun install`, `bun run dev`, `bun run test`, `bun run build`), including the note that `bun test` is not the same thing as `bun run test`, the architecture in a short paragraph, how to add a new demo (one MDX entry plus one island component), and a note that the cross-origin isolation headers in `vercel.json` are required for multi-threaded WASM.
 
 - [ ] **Step 5: Run the full suite and a production build**
 
-Run: `npm test`
+Run: `bun run test`
 Expected: PASS, all tests across all files.
 
-Run: `npm run build && npm run preview`
+Run: `bun run build && bun run preview`
 Expected: the build succeeds; all three demo pages work against the preview server.
 
 - [ ] **Step 6: Verify cross-origin isolation after deploying**

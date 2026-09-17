@@ -51,6 +51,15 @@ Astro was chosen because the site is mostly static prose with a few heavy
 interactive islands, which is precisely Astro's use case. Pages ship almost no
 JavaScript until the visitor opts into loading a model.
 
+## Tooling
+
+Bun is the package manager and script runner: `bun install`, `bun add`,
+`bun add -d`, `bunx`, `bun run <script>`. npm, npx, and yarn are not used, and
+the committed lockfile is `bun.lock`.
+
+The test suite is run with `bun run test`, not `bun test` — the latter invokes
+Bun's own runner, which ignores `vitest.config.ts`.
+
 ## Language
 
 All code, comments, documentation, README, UI copy, examples, and commit
