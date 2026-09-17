@@ -39,10 +39,6 @@ export function useModel(config: UseModelConfig): UseModelState {
   const [error, setError] = useState<string | null>(null);
 
   const clientRef = useRef<InferenceClient | null>(null);
-  // Guards against state writes settling after this hook has unmounted:
-  // dispose() rejects every pending request, and without this flag those
-  // rejections would otherwise reach setState on an unmounted component.
-  const mountedRef = useRef(true);
   // Set synchronously at the start of load(), before the first await, so a
   // second load() fired before detectBackend() resolves is rejected by this
   // check rather than racing past it (clientRef isn't assigned until after
@@ -51,7 +47,14 @@ export function useModel(config: UseModelConfig): UseModelState {
 
   useEffect(() => {
     return () => {
-      mountedRef.current = false;
+      // What actually matters on unmount: dispose the client so its worker
+      // is terminated and every pending request is rejected. We do not guard
+      // the resulting setState calls against "unmounted" — React 18 already
+      // makes a post-unmount setState a silent no-op, and a manual "mounted"
+      // ref here would reintroduce the StrictMode hazard fixed in task-4
+      // round 2: without reassigning it back to true on every mount, a
+      // StrictMode mount -> cleanup -> remount cycle leaves it stuck at
+      // false, silently freezing a component that is genuinely mounted.
       clientRef.current?.dispose();
       clientRef.current = null;
     };
@@ -66,7 +69,6 @@ export function useModel(config: UseModelConfig): UseModelState {
 
     try {
       const device = await detectBackend();
-      if (!mountedRef.current) return;
       setBackend(device);
 
       const client = createInferenceClient({
@@ -77,14 +79,10 @@ export function useModel(config: UseModelConfig): UseModelState {
       });
       clientRef.current = client;
 
-      await client.load((update) => {
-        if (mountedRef.current) setProgress(update.progress);
-      });
-      if (!mountedRef.current) return;
+      await client.load((update) => setProgress(update.progress));
       setStatus("ready");
     } catch (cause) {
       clientRef.current = null;
-      if (!mountedRef.current) return;
       setError(cause instanceof Error ? cause.message : String(cause));
       setStatus("error");
     } finally {
@@ -101,12 +99,10 @@ export function useModel(config: UseModelConfig): UseModelState {
 
     try {
       const result = await client.run<T>(input, options);
-      if (!mountedRef.current) return result.output;
       setDurationMs(result.durationMs);
       setStatus("ready");
       return result.output;
     } catch (cause) {
-      if (!mountedRef.current) return null;
       setError(cause instanceof Error ? cause.message : String(cause));
       setStatus("error");
       return null;
