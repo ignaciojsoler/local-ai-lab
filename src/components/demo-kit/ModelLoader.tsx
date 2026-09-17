@@ -24,25 +24,23 @@ export function ModelLoader({
           aria-valuemin={0}
           aria-valuemax={100}
           aria-label="Model download progress"
-          className="h-1 w-full overflow-hidden rounded bg-current/10"
+          className="meter"
         >
-          <div className="h-full bg-current transition-[width]" style={{ width: `${progress}%` }} />
+          <span className="meter-fill" style={{ width: `${progress}%` }} />
         </div>
-        <p className="font-mono text-xs opacity-70">Downloading model… {progress}%</p>
+        <p className="font-mono text-xs text-[var(--color-muted)]">
+          Downloading model… {progress}%
+        </p>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-2">
-      <button
-        type="button"
-        onClick={onLoad}
-        className="w-fit rounded border border-current/30 px-3 py-2 font-mono text-sm hover:bg-current/5"
-      >
+      <button type="button" onClick={onLoad} className="btn btn-primary w-fit">
         Load model ({sizeLabel})
       </button>
-      <p className="text-xs opacity-60">
+      <p className="text-xs text-[var(--color-muted)]">
         Runs entirely in your browser. Cached after the first download.
       </p>
     </div>

@@ -7,14 +7,33 @@ sizeLabel: "~87 MB"
 order: 3
 ---
 
-import CodeTabs from "../../components/demo-kit/CodeTabs.astro";
-import ZeroShotDemo from "../../components/demos/ZeroShotDemo.tsx";
+export const python = String.raw`from transformers import pipeline
 
-<ZeroShotDemo
-  client:visible
-  model="Xenova/nli-deberta-v3-xsmall"
-  sizeLabel="~87 MB"
-/>
+classifier = pipeline(
+    "zero-shot-classification",
+    model="cross-encoder/nli-deberta-v3-xsmall",
+)
+result = classifier(
+    "My package never arrived and nobody answered my emails.",
+    candidate_labels=["shipping", "billing", "product quality"],
+)
+print(result)
+# {'sequence': '...', 'labels': ['shipping', 'billing', 'product quality'],
+#  'scores': [0.88, 0.07, 0.05]}`;
+
+export const javascript = String.raw`import { pipeline } from "@huggingface/transformers";
+
+const classifier = await pipeline(
+  "zero-shot-classification",
+  "Xenova/nli-deberta-v3-xsmall",
+);
+const result = await classifier(
+  "My package never arrived and nobody answered my emails.",
+  { candidate_labels: ["shipping", "billing", "product quality"] },
+);
+console.log(result);
+// { sequence: "...", labels: ["shipping", "billing", "product quality"],
+//   scores: [0.88, 0.07, 0.05] }`;
 
 ## What this does
 
@@ -79,42 +98,6 @@ feels identical to a human reader.
 
 ## Integration
 
-The same pipeline can be called from either Python or JavaScript, as shown
-below.
+The same pipeline can be called from either Python or JavaScript.
 
-<CodeTabs>
-  <Fragment slot="python">
-    ```python
-    from transformers import pipeline
-
-    classifier = pipeline(
-        "zero-shot-classification",
-        model="cross-encoder/nli-deberta-v3-xsmall",
-    )
-    result = classifier(
-        "My package never arrived and nobody answered my emails.",
-        candidate_labels=["shipping", "billing", "product quality"],
-    )
-    print(result)
-    # {'sequence': '...', 'labels': ['shipping', 'billing', 'product quality'],
-    #  'scores': [0.88, 0.07, 0.05]}
-    ```
-  </Fragment>
-  <Fragment slot="javascript">
-    ```javascript
-    import { pipeline } from "@huggingface/transformers";
-
-    const classifier = await pipeline(
-      "zero-shot-classification",
-      "Xenova/nli-deberta-v3-xsmall",
-    );
-    const result = await classifier(
-      "My package never arrived and nobody answered my emails.",
-      { candidate_labels: ["shipping", "billing", "product quality"] },
-    );
-    console.log(result);
-    // { sequence: "...", labels: ["shipping", "billing", "product quality"],
-    //   scores: [0.88, 0.07, 0.05] }
-    ```
-  </Fragment>
-</CodeTabs>
+<CodeTabs python={python} javascript={javascript} />

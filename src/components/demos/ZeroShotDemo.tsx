@@ -39,22 +39,22 @@ export default function ZeroShotDemo({
   return (
     <DemoShell model={modelState} sizeLabel={sizeLabel}>
       <div className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1 font-mono text-xs">
+        <label className="field-label">
           <span>Text to classify</span>
           <textarea
             value={text}
             onChange={(event) => setText(event.target.value)}
             rows={3}
-            className="w-full rounded border border-current/20 bg-transparent p-3 text-sm"
+            className="field"
           />
         </label>
 
-        <label className="flex flex-col gap-1 font-mono text-xs">
+        <label className="field-label">
           <span>Candidate labels (comma separated)</span>
           <input
             value={rawLabels}
             onChange={(event) => setRawLabels(event.target.value)}
-            className="w-full rounded border border-current/20 bg-transparent p-3 text-sm"
+            className="field"
           />
         </label>
 
@@ -64,7 +64,7 @@ export default function ZeroShotDemo({
           disabled={
             text.trim() === "" || labels.length < 2 || modelState.status === "running"
           }
-          className="w-fit rounded border border-current/30 px-3 py-2 font-mono text-sm disabled:opacity-40"
+          className="btn btn-primary w-fit"
         >
           {modelState.status === "running" ? "Classifying…" : "Classify"}
         </button>

@@ -37,7 +37,7 @@ export default function SentimentDemo({
               key={sample}
               type="button"
               onClick={() => setText(sample)}
-              className="rounded border border-current/20 px-2 py-1 font-mono text-xs hover:bg-current/5"
+              className="chip"
             >
               Sample {index + 1}
             </button>
@@ -49,14 +49,14 @@ export default function SentimentDemo({
           onChange={(event) => setText(event.target.value)}
           rows={4}
           aria-label="Review text"
-          className="w-full rounded border border-current/20 bg-transparent p-3 text-sm"
+          className="field"
         />
 
         <button
           type="button"
           onClick={() => void analyze()}
           disabled={text.trim() === "" || modelState.status === "running"}
-          className="w-fit rounded border border-current/30 px-3 py-2 font-mono text-sm disabled:opacity-40"
+          className="btn btn-primary w-fit"
         >
           {modelState.status === "running" ? "Analyzing…" : "Analyze"}
         </button>

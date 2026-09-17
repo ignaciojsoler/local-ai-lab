@@ -1,0 +1,58 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { SITE } from "@consts";
+
+type Heading = {
+  depth: number;
+  slug: string;
+  text: string;
+};
+
+type Props = {
+  demos: CollectionEntry<"demos">[];
+  currentPath: string;
+  headings?: Heading[];
+};
+
+const { demos, currentPath, headings = [] } = Astro.props;
+const pageHeadings = headings.filter((heading) => heading.depth === 2);
+---
+
+<aside id="docs-sidebar" class="docs-sidebar" aria-label="Site">
+  <a class="docs-brand" href="/">{SITE.NAME}</a>
+
+  <div>
+    <p class="docs-nav-label">Guide</p>
+    <nav class="docs-nav">
+      <a href="/" class={currentPath === "/" ? "is-active" : undefined}>Overview</a>
+      <a href="/demos" class={currentPath === "/demos" ? "is-active" : undefined}>All demos</a>
+    </nav>
+  </div>
+
+  <div>
+    <p class="docs-nav-label">Models</p>
+    <nav class="docs-nav">
+      {demos.map((entry) => {
+        const href = `/demos/${entry.id}`;
+        const active = currentPath === href;
+        return (
+          <a href={href} class={active ? "is-active" : undefined}>
+            {entry.data.title}
+          </a>
+        );
+      })}
+    </nav>
+  </div>
+
+  {pageHeadings.length > 0 && (
+    <div>
+      <p class="docs-nav-label">On this page</p>
+      <nav class="docs-nav docs-toc">
+        <a href="#live-demo">Live demo</a>
+        {pageHeadings.map((heading) => (
+          <a href={`#${heading.slug}`}>{heading.text}</a>
+        ))}
+      </nav>
+    </div>
+  )}
+</aside>

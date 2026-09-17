@@ -19,7 +19,7 @@ export function DemoShell({
   const isReady = model.status === "ready" || model.status === "running";
 
   return (
-    <section className="not-prose flex flex-col gap-4 rounded border border-current/15 p-4">
+    <section className="not-prose demo-shell">
       {!isReady && (
         <ModelLoader
           status={model.status}

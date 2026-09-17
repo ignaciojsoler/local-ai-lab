@@ -69,24 +69,28 @@ export default function ImageClassificationDemo({
               key={src}
               type="button"
               onClick={() => void classify(src)}
-              className="rounded border border-current/20 px-2 py-1 font-mono text-xs hover:bg-current/5"
+              className="chip"
             >
               Sample {index + 1}
             </button>
           ))}
         </div>
 
-        <label className="flex w-fit cursor-pointer flex-col gap-1 font-mono text-xs">
+        <label className="field-label w-fit cursor-pointer">
           <span>Upload an image</span>
           <input type="file" accept="image/*" onChange={handleUpload} className="text-xs" />
         </label>
 
         {imageUrl && (
-          <img src={imageUrl} alt="" className="max-h-64 w-fit rounded border border-current/15" />
+          <img
+            src={imageUrl}
+            alt=""
+            className="max-h-64 w-fit rounded border border-[var(--color-border)]"
+          />
         )}
 
         {modelState.status === "running" && (
-          <p className="font-mono text-xs opacity-70">Classifying…</p>
+          <p className="font-mono text-xs text-[var(--color-muted)]">Classifying…</p>
         )}
 
         {predictions.length > 0 && (

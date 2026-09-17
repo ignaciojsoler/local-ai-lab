@@ -1,7 +1,6 @@
 ---
 import { getCollection } from "astro:content";
 import PageLayout from "@layouts/PageLayout.astro";
-import Link from "@components/Link.astro";
 
 const demos = (await getCollection("demos")).sort((a, b) => a.data.order - b.data.order);
 ---
@@ -10,15 +9,19 @@ const demos = (await getCollection("demos")).sort((a, b) => a.data.order - b.dat
   title="Demos"
   description="Hugging Face models running entirely in your browser."
 >
-  <article class="space-y-8">
-    <h1 class="font-semibold text-black dark:text-white">Demos</h1>
-    <ul class="space-y-6">
+  <article class="docs-article">
+    <h1>Demos</h1>
+    <p class="lead">
+      Three interaction shapes: typed text, an uploaded image, and labels you
+      invent at runtime. Each page loads its model only after you ask.
+    </p>
+    <ul class="demo-index">
       {demos.map((entry) => (
         <li>
-          <Link href={`/demos/${entry.id}`} aria-label={entry.data.title}>
-            <h2 class="font-semibold text-black dark:text-white">{entry.data.title}</h2>
-          </Link>
-          <p>{entry.data.summary}</p>
+          <a href={`/demos/${entry.id}`}>
+            <h2>{entry.data.title}</h2>
+            <p>{entry.data.summary}</p>
+          </a>
         </li>
       ))}
     </ul>
