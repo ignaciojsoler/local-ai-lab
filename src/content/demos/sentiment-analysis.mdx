@@ -8,6 +8,13 @@ order: 1
 ---
 
 import CodeTabs from "../../components/demo-kit/CodeTabs.astro";
+import SentimentDemo from "../../components/demos/SentimentDemo.tsx";
+
+<SentimentDemo
+  client:visible
+  model="Xenova/distilbert-base-uncased-finetuned-sst-2-english"
+  sizeLabel="~67 MB"
+/>
 
 ## What this does
 
@@ -38,6 +45,19 @@ runtime.
    WebGPU when it's available and falling back to WebAssembly otherwise.
 4. The model outputs a label (`POSITIVE` or `NEGATIVE`) with a confidence
    score, which the page renders immediately.
+
+Under the hood, DistilBERT is the model doing the classifying, fine-tuned on
+SST-2. Your text is first tokenized into subword ids, which are fed through
+the transformer encoder to produce contextual representations of the whole
+sequence. A small classification head on top of that encoder reduces those
+representations to two logits, one per class, and a softmax turns those
+logits into the positive/negative probabilities shown as the confidence
+score. Because the model was fine-tuned only on English movie reviews, it is
+English-only and can be confidently wrong outside that domain: a review in
+another language, or from a very different context such as legal or medical
+text, may still get a high-confidence label that is simply incorrect.
+
+## Integration
 
 The same pipeline can be called from either Python or JavaScript, as shown
 below.
@@ -70,6 +90,3 @@ below.
     ```
   </Fragment>
 </CodeTabs>
-
-The interactive version of this demo, embedded directly on this page, is
-coming next.
