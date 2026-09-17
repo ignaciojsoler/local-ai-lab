@@ -1,64 +1,69 @@
-![Astro Nano](_astro_nano.png)
+# Local AI Lab
 
-Astro Nano is a static, minimalist, lightweight, lightning fast portfolio and blog theme.
+A portfolio of Hugging Face models running entirely in your browser. No backend, no API keys, no data leaving your device: every demo downloads a model straight from the Hugging Face CDN and runs inference on your own machine, using WebGPU when it's available and falling back to WASM when it's not.
 
-Built with Astro, Tailwind and Typescript, an no frameworks.
+## Stack
 
-It was designed as an even more minimal theme than my popular theme [Astro Sphere](https://github.com/markhorn-dev/astro-sphere)
+- [Astro](https://astro.build) (static output, no adapter)
+- [React](https://react.dev) for the interactive demo islands
+- [Tailwind CSS](https://tailwindcss.com) for styling
+- [`@huggingface/transformers`](https://huggingface.co/docs/transformers.js) (Transformers.js) for in-browser inference, run inside a Web Worker
+- [Vitest](https://vitest.dev) + Testing Library for tests
+- Deployed as a static site on [Vercel](https://vercel.com)
 
-## 🚀 Deploy your own
+## Running locally
 
-[![Deploy with Vercel](_deploy_vercel.svg)](https://vercel.com/new/clone?repository-url=https://github.com/markhorn-dev/astro-nano)  [![Deploy with Netlify](_deploy_netlify.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/markhorn-dev/astro-nano)
+This project uses [Bun](https://bun.sh) as the package manager and script runner. Do not use npm, npx, or yarn.
 
-## 📋 Features
+```bash
+bun install
+bun run dev
+```
 
-- ✅ 100/100 Lighthouse performance
-- ✅ Responsive
-- ✅ Accessible
-- ✅ SEO-friendly
-- ✅ Typesafe
-- ✅ Minimal style
-- ✅ Light/Dark Theme
-- ✅ Animated UI
-- ✅ Tailwind styling
-- ✅ Auto generated sitemap
-- ✅ Auto generated RSS Feed
-- ✅ Markdown support
-- ✅ MDX Support (components in your markdown)
+Run the test suite:
 
-## 💯 Lighthouse score
-![Astro Nano Lighthouse Score](_lighthouse.png)
+```bash
+bun run test
+```
 
-## 🕊️ Lightweight
-No frameworks or added bulk
+> **Note:** `bun run test` is not the same as `bun test`. `bun test` invokes Bun's own built-in test runner, which does not know about this project's Vitest configuration. Always use `bun run test`.
 
-## ⚡︎ Fast
-Rendered in ~40ms on localhost
+Build for production and preview the static output:
 
-## 📄 Configuration
+```bash
+bun run build
+bun run preview
+```
 
-The blog posts on the demo serve as the documentation and configuration.
+## Architecture
 
-## 💻 Commands
+Each demo is a React "island" hydrated on the client (`client:visible`) that talks to a dedicated Web Worker. The worker owns the `@huggingface/transformers` pipeline: it loads the requested model on demand — only when the demo actually runs, not on page load — reports download progress back to the UI, and runs inference off the main thread so the page never freezes. The pipeline prefers the WebGPU execution provider and transparently falls back to WASM on devices or browsers that don't support it. Because model weights and multi-threaded WASM both rely on cross-origin isolation, `vercel.json` sets the `Cross-Origin-Opener-Policy` and `Cross-Origin-Embedder-Policy` headers on every route (see below).
 
-All commands are run from the root of the project, from a terminal:
+## Adding a new demo
 
-Replace npm with your package manager of choice. `npm`, `pnpm`, `yarn`, `bun`, etc
+1. Add an MDX entry to `src/content/demos/`, with frontmatter (`title`, `summary`, `task`, `model`, `sizeLabel`, `order`) matching the existing entries, and import/render your demo component inside it.
+2. Build one island component under `src/components/demos/` (a `.tsx` file) that uses the shared demo-kit worker/UI helpers, following the pattern of `SentimentDemo.tsx`, `ImageClassificationDemo.tsx`, or `ZeroShotDemo.tsx`.
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run dev:network`     | Starts local dev server on local network         |
-| `npm run sync`            | Generates TypeScript types for all Astro modules.|
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run preview:network` | Preview build on local network                   |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-| `npm run lint`            | Run ESLint                                       |
-| `npm run lint:fix`        | Auto-fix ESLint issues                           |
+The demo automatically shows up on `/demos` and on the home page, both of which list the `demos` content collection sorted by `order`.
 
-## 🏛️ License
+## Deployment
 
-MIT
+The site builds to static HTML/JS/CSS (`output: "static"` in `astro.config.mjs`, no adapter) and is deployed on Vercel. `vercel.json` sets:
+
+```json
+{
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
+        { "key": "Cross-Origin-Embedder-Policy", "value": "credentialless" }
+      ]
+    }
+  ]
+}
+```
+
+These cross-origin isolation headers are required for multi-threaded WASM. Without them, the WASM fallback path runs single-threaded, which mainly penalizes the visitors whose machines lack WebGPU. `credentialless` is used instead of `require-corp` because model weights are fetched cross-origin from the Hugging Face CDN, which does not send `Cross-Origin-Resource-Policy` headers — under `require-corp` those fetches would be blocked and every demo would fail to load its model.
+
+After deploying, verify isolation actually took effect by opening the deployed site's browser console and evaluating `crossOriginIsolated` — it should print `true`.

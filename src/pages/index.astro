@@ -1,8 +1,11 @@
 ---
+import { getCollection } from "astro:content";
 import Container from "@components/Container.astro";
 import PageLayout from "@layouts/PageLayout.astro";
 import Link from "@components/Link.astro";
 import { SITE, HOME, SOCIALS } from "@consts";
+
+const demos = (await getCollection("demos")).sort((a, b) => a.data.order - b.data.order);
 ---
 
 <PageLayout title={HOME.TITLE} description={HOME.DESCRIPTION}>
@@ -16,8 +19,27 @@ import { SITE, HOME, SOCIALS } from "@consts";
           <p class="animate">
             A portfolio of Hugging Face models running entirely in your
             browser. No server, no API calls, no data leaving your device.
+            Every demo below downloads a model straight from the Hugging Face
+            CDN and runs inference on your own machine, with WebGPU when it's
+            available and a WASM fallback when it's not.
           </p>
         </article>
+      </section>
+
+      <section class="animate space-y-4">
+        <h5 class="font-semibold text-black dark:text-white">
+          Demos
+        </h5>
+        <ul class="space-y-6">
+          {demos.map((entry) => (
+            <li>
+              <Link href={`/demos/${entry.id}`} aria-label={entry.data.title}>
+                <h6 class="font-semibold text-black dark:text-white">{entry.data.title}</h6>
+              </Link>
+              <p>{entry.data.summary}</p>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section class="animate space-y-4">
