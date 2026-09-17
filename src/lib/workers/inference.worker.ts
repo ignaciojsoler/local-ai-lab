@@ -6,6 +6,7 @@ env.allowLocalModels = false;
 
 type LoadMessage = {
   type: "load";
+  id: number;
   task: PipelineType;
   model: string;
   device: "webgpu" | "wasm";
@@ -13,6 +14,7 @@ type LoadMessage = {
 
 type RunMessage = {
   type: "run";
+  id: number;
   input: unknown;
   options?: Record<string, unknown>;
 };
@@ -33,12 +35,13 @@ self.addEventListener("message", async (event: MessageEvent<IncomingMessage>) =>
           if (report.status !== "progress") return;
           self.postMessage({
             type: "progress",
+            id: message.id,
             file: report.file ?? "",
             progress: Math.round(report.progress ?? 0),
           });
         },
       });
-      self.postMessage({ type: "ready" });
+      self.postMessage({ type: "ready", id: message.id });
       return;
     }
 
@@ -48,6 +51,7 @@ self.addEventListener("message", async (event: MessageEvent<IncomingMessage>) =>
       const output = await task(message.input, message.options);
       self.postMessage({
         type: "result",
+        id: message.id,
         output,
         durationMs: Math.round(performance.now() - startedAt),
       });
@@ -55,6 +59,7 @@ self.addEventListener("message", async (event: MessageEvent<IncomingMessage>) =>
   } catch (error) {
     self.postMessage({
       type: "error",
+      id: message.id,
       message: error instanceof Error ? error.message : String(error),
     });
   }

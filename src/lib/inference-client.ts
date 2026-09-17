@@ -17,10 +17,10 @@ export interface InferenceClient {
 }
 
 type WorkerMessage =
-  | { type: "progress"; file: string; progress: number }
-  | { type: "ready" }
-  | { type: "result"; output: unknown; durationMs: number }
-  | { type: "error"; message: string };
+  | { type: "progress"; id: number; file: string; progress: number }
+  | { type: "ready"; id: number }
+  | { type: "result"; id: number; output: unknown; durationMs: number }
+  | { type: "error"; id: number; message: string };
 
 type Config = {
   task: string;
@@ -29,49 +29,69 @@ type Config = {
   createWorker: () => WorkerLike;
 };
 
+type PendingLoad = {
+  kind: "load";
+  resolve: () => void;
+  reject: (error: Error) => void;
+  onProgress?: (update: ProgressUpdate) => void;
+};
+
+type PendingRun = {
+  kind: "run";
+  resolve: (value: RunResult<never>) => void;
+  reject: (error: Error) => void;
+};
+
+type Pending = PendingLoad | PendingRun;
+
 export function createInferenceClient(config: Config): InferenceClient {
   const worker = config.createWorker();
 
-  let onProgress: ((update: ProgressUpdate) => void) | undefined;
-  let pendingLoad: { resolve: () => void; reject: (error: Error) => void } | null = null;
-  let pendingRun: { resolve: (value: RunResult<never>) => void; reject: (error: Error) => void } | null = null;
+  let nextId = 1;
+  const pending = new Map<number, Pending>();
 
   worker.addEventListener("message", (event) => {
     const message = event.data as WorkerMessage;
+    const entry = pending.get(message.id);
 
     switch (message.type) {
       case "progress":
-        onProgress?.({ file: message.file, progress: message.progress });
+        if (entry?.kind === "load") {
+          entry.onProgress?.({ file: message.file, progress: message.progress });
+        }
         break;
       case "ready":
-        pendingLoad?.resolve();
-        pendingLoad = null;
+        if (entry?.kind === "load") {
+          pending.delete(message.id);
+          entry.resolve();
+        }
         break;
       case "result":
-        pendingRun?.resolve({
-          output: message.output,
-          durationMs: message.durationMs,
-        } as RunResult<never>);
-        pendingRun = null;
+        if (entry?.kind === "run") {
+          pending.delete(message.id);
+          entry.resolve({
+            output: message.output,
+            durationMs: message.durationMs,
+          } as RunResult<never>);
+        }
         break;
-      case "error": {
-        const error = new Error(message.message);
-        pendingRun?.reject(error);
-        pendingLoad?.reject(error);
-        pendingRun = null;
-        pendingLoad = null;
+      case "error":
+        if (entry) {
+          pending.delete(message.id);
+          entry.reject(new Error(message.message));
+        }
         break;
-      }
     }
   });
 
   return {
-    load(progressCallback) {
-      onProgress = progressCallback;
+    load(onProgress) {
+      const id = nextId++;
       return new Promise<void>((resolve, reject) => {
-        pendingLoad = { resolve, reject };
+        pending.set(id, { kind: "load", resolve, reject, onProgress });
         worker.postMessage({
           type: "load",
+          id,
           task: config.task,
           model: config.model,
           device: config.device,
@@ -80,16 +100,22 @@ export function createInferenceClient(config: Config): InferenceClient {
     },
 
     run<T>(input: unknown, options?: Record<string, unknown>) {
+      const id = nextId++;
       return new Promise<RunResult<T>>((resolve, reject) => {
-        pendingRun = {
+        pending.set(id, {
+          kind: "run",
           resolve: resolve as (value: RunResult<never>) => void,
           reject,
-        };
-        worker.postMessage({ type: "run", input, options });
+        });
+        worker.postMessage({ type: "run", id, input, options });
       });
     },
 
     dispose() {
+      for (const entry of pending.values()) {
+        entry.reject(new Error("Inference client disposed"));
+      }
+      pending.clear();
       worker.terminate();
     },
   };
