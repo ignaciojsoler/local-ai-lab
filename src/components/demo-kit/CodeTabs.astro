@@ -1,17 +1,25 @@
 ---
-const tabId = `code-tabs-${Math.random().toString(36).slice(2, 9)}`;
+type Props = {
+  python: string;
+  javascript: string;
+};
+
+const { python, javascript } = Astro.props;
+const tabId = `code-tabs-${crypto.randomUUID()}`;
 ---
 
-<div class="not-prose my-6 rounded border border-current/15" data-code-tabs id={tabId}>
-  <div class="flex gap-1 border-b border-current/15 p-1" role="tablist">
-    <button type="button" role="tab" data-tab="python" aria-selected="true"
-      class="rounded px-3 py-1 font-mono text-xs aria-selected:bg-current/10">Python</button>
-    <button type="button" role="tab" data-tab="javascript" aria-selected="false"
-      class="rounded px-3 py-1 font-mono text-xs aria-selected:bg-current/10">JavaScript</button>
+<div class="code-tabs" data-code-tabs id={tabId}>
+  <div role="tablist" aria-label="Language">
+    <button type="button" role="tab" data-tab="python" aria-selected="true">Python</button>
+    <button type="button" role="tab" data-tab="javascript" aria-selected="false">JavaScript</button>
   </div>
 
-  <div data-panel="python"><slot name="python" /></div>
-  <div data-panel="javascript" hidden><slot name="javascript" /></div>
+  <div data-panel="python">
+    <pre><code>{python.trim()}</code></pre>
+  </div>
+  <div data-panel="javascript" hidden>
+    <pre><code>{javascript.trim()}</code></pre>
+  </div>
 </div>
 
 <script>

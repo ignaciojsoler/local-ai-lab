@@ -19,7 +19,7 @@ export function BackendBadge({
   if (!backend) return null;
 
   return (
-    <span className="inline-flex items-center gap-2 rounded border border-current/20 px-2 py-1 font-mono text-xs opacity-80">
+    <span className="badge">
       <span>{LABELS[backend]}</span>
       {durationMs !== null && <span>· {durationMs} ms</span>}
     </span>

@@ -1,0 +1,25 @@
+---
+import SentimentDemo from "@components/demos/SentimentDemo";
+import ImageClassificationDemo from "@components/demos/ImageClassificationDemo";
+import ZeroShotDemo from "@components/demos/ZeroShotDemo";
+
+type Props = {
+  task: string;
+  model: string;
+  sizeLabel: string;
+};
+
+const { task, model, sizeLabel } = Astro.props;
+---
+
+<section id="live-demo" class="demo-panel" aria-label="Live demo">
+  {task === "text-classification" && (
+    <SentimentDemo client:load model={model} sizeLabel={sizeLabel} />
+  )}
+  {task === "image-classification" && (
+    <ImageClassificationDemo client:load model={model} sizeLabel={sizeLabel} />
+  )}
+  {task === "zero-shot-classification" && (
+    <ZeroShotDemo client:load model={model} sizeLabel={sizeLabel} />
+  )}
+</section>

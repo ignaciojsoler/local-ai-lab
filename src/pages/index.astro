@@ -1,73 +1,55 @@
 ---
 import { getCollection } from "astro:content";
-import Container from "@components/Container.astro";
 import PageLayout from "@layouts/PageLayout.astro";
-import Link from "@components/Link.astro";
 import { SITE, HOME, SOCIALS } from "@consts";
 
 const demos = (await getCollection("demos")).sort((a, b) => a.data.order - b.data.order);
 ---
 
 <PageLayout title={HOME.TITLE} description={HOME.DESCRIPTION}>
-  <Container>
-    <h4 class="animate font-semibold text-black dark:text-white">
-      {SITE.NAME}
-    </h4>
-    <div class="space-y-16">
-      <section>
-        <article class="space-y-4">
-          <p class="animate">
-            A portfolio of Hugging Face models running entirely in your
-            browser. No server, no API calls, no data leaving your device.
-            Every demo below downloads a model straight from the Hugging Face
-            CDN and runs inference on your own machine, with WebGPU when it's
-            available and a WASM fallback when it's not.
-          </p>
-        </article>
-      </section>
+  <article class="docs-article">
+    <h1>{SITE.NAME}</h1>
+    <p class="lead">
+      Hugging Face models that download into this tab and run on your machine.
+      There is no inference API, no key, and no text or image leaves the browser.
+    </p>
 
-      <section class="animate space-y-4">
-        <h5 class="font-semibold text-black dark:text-white">
-          Demos
-        </h5>
-        <ul class="space-y-6">
-          {demos.map((entry) => (
-            <li>
-              <Link href={`/demos/${entry.id}`} aria-label={entry.data.title}>
-                <h6 class="font-semibold text-black dark:text-white">{entry.data.title}</h6>
-              </Link>
-              <p>{entry.data.summary}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
+    <h2 id="how-it-runs">How it runs</h2>
+    <p>
+      Each page is a short write-up plus a working demo. The first click
+      states the download size, then fetches quantized ONNX weights from the
+      Hugging Face CDN and caches them in IndexedDB. Inference happens in a
+      Web Worker: WebGPU when the browser can initialize it, WASM on CPU
+      otherwise.
+    </p>
+    <p>
+      Open a model on the left, load it once, and try the samples. The
+      Python and JavaScript snippets at the bottom of each page show the same
+      pipeline outside this site.
+    </p>
 
-      <section class="animate space-y-4">
-        <h5 class="font-semibold text-black dark:text-white">
-          Let's Connect
-        </h5>
-        <article>
-          <p>
-            If you want to get in touch with me about something or just to say hi,
-            reach out on social media or send me an email.
-          </p>
-        </article>
-        <ul class="flex flex-wrap gap-2">
-          {SOCIALS.map(SOCIAL => (
-            <li class="flex gap-x-2 text-nowrap">
-              <Link href={SOCIAL.HREF} external aria-label={`${SITE.NAME} on ${SOCIAL.NAME}`}>
-                {SOCIAL.NAME}
-              </Link>
-              {"/"}
-            </li>
-          ))}
-          <li class="line-clamp-1">
-            <Link href={`mailto:${SITE.EMAIL}`} aria-label={`Email ${SITE.NAME}`}>
-              {SITE.EMAIL}
-            </Link>
-          </li>
-        </ul>
-      </section>
-    </div>
-  </Container>
+    <h2 id="demos">Demos</h2>
+    <ul class="demo-index">
+      {demos.map((entry) => (
+        <li>
+          <a href={`/demos/${entry.id}`}>
+            <h2>{entry.data.title}</h2>
+            <p>{entry.data.summary}</p>
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <h2 id="contact">Contact</h2>
+    <p>
+      {SOCIALS.map((social, index) => (
+        <>
+          {index > 0 && " · "}
+          <a href={social.HREF}>{social.NAME}</a>
+        </>
+      ))}
+      {" · "}
+      <a href={`mailto:${SITE.EMAIL}`}>{SITE.EMAIL}</a>
+    </p>
+  </article>
 </PageLayout>

@@ -7,21 +7,32 @@ sizeLabel: "~67 MB"
 order: 1
 ---
 
-import CodeTabs from "../../components/demo-kit/CodeTabs.astro";
-import SentimentDemo from "../../components/demos/SentimentDemo.tsx";
+export const python = String.raw`from transformers import pipeline
 
-<SentimentDemo
-  client:visible
-  model="Xenova/distilbert-base-uncased-finetuned-sst-2-english"
-  sizeLabel="~67 MB"
-/>
+classifier = pipeline(
+    "text-classification",
+    model="distilbert-base-uncased-finetuned-sst-2-english",
+)
+result = classifier("This product exceeded my expectations!")
+print(result)
+# [{'label': 'POSITIVE', 'score': 0.9998}]`;
+
+export const javascript = String.raw`import { pipeline } from "@huggingface/transformers";
+
+const classifier = await pipeline(
+  "text-classification",
+  "Xenova/distilbert-base-uncased-finetuned-sst-2-english",
+);
+const result = await classifier("This product exceeded my expectations!");
+console.log(result);
+// [{ label: "POSITIVE", score: 0.9998 }]`;
 
 ## What this does
 
-Paste a product review below and this page classifies it as **positive** or
-**negative**. The entire model download and every inference run happen inside
-your browser tab. No text you type is ever sent to a server, and the demo
-keeps working even if you go offline once the model has loaded.
+Paste a product review and this page classifies it as **positive** or
+**negative**. The model download and every inference run happen inside your
+browser tab. No text you type is ever sent to a server, and the demo keeps
+working even if you go offline once the model has loaded.
 
 ## The model
 
@@ -59,34 +70,6 @@ text, may still get a high-confidence label that is simply incorrect.
 
 ## Integration
 
-The same pipeline can be called from either Python or JavaScript, as shown
-below.
+The same pipeline can be called from either Python or JavaScript.
 
-<CodeTabs>
-  <Fragment slot="python">
-    ```python
-    from transformers import pipeline
-
-    classifier = pipeline(
-        "text-classification",
-        model="distilbert-base-uncased-finetuned-sst-2-english",
-    )
-    result = classifier("This product exceeded my expectations!")
-    print(result)
-    # [{'label': 'POSITIVE', 'score': 0.9998}]
-    ```
-  </Fragment>
-  <Fragment slot="javascript">
-    ```javascript
-    import { pipeline } from "@huggingface/transformers";
-
-    const classifier = await pipeline(
-      "text-classification",
-      "Xenova/distilbert-base-uncased-finetuned-sst-2-english",
-    );
-    const result = await classifier("This product exceeded my expectations!");
-    console.log(result);
-    // [{ label: "POSITIVE", score: 0.9998 }]
-    ```
-  </Fragment>
-</CodeTabs>
+<CodeTabs python={python} javascript={javascript} />
