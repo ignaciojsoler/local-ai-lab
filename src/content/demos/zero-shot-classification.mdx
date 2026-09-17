@@ -1,0 +1,120 @@
+---
+title: "Zero-shot classification"
+summary: "Invent your own categories and classify text into them, with no training data and no fine-tuning."
+task: "zero-shot-classification"
+model: "Xenova/nli-deberta-v3-xsmall"
+sizeLabel: "~87 MB"
+order: 3
+---
+
+import CodeTabs from "../../components/demo-kit/CodeTabs.astro";
+import ZeroShotDemo from "../../components/demos/ZeroShotDemo.tsx";
+
+<ZeroShotDemo
+  client:visible
+  model="Xenova/nli-deberta-v3-xsmall"
+  sizeLabel="~87 MB"
+/>
+
+## What this does
+
+Type any piece of text, then type a set of category labels you make up on
+the spot — nothing the model has ever been trained on by name. This page
+ranks how well each of your labels fits the text, with no training data and
+no fine-tuning step. The model download and every classification run happen
+entirely inside your browser tab: no text you type is ever sent to a server,
+and the demo keeps working offline once the model has loaded.
+
+## The model
+
+This demo runs [`nli-deberta-v3-xsmall`](https://huggingface.co/cross-encoder/nli-deberta-v3-xsmall),
+a DeBERTa-v3 model fine-tuned for **natural language inference (NLI)** —
+the task of deciding whether one sentence (a "premise") logically entails,
+contradicts, or is neutral toward another sentence (a "hypothesis"). That
+single ability, entailment scoring, turns out to be enough to build a
+general-purpose text classifier with no extra training at all, which is
+exactly the trick this demo shows off. The build used here is the
+[`Xenova/nli-deberta-v3-xsmall`](https://huggingface.co/Xenova/nli-deberta-v3-xsmall)
+ONNX export, quantized to around 87 MB, prepared for the transformers.js
+runtime.
+
+## How it works
+
+If you have never heard of "zero-shot classification," the name makes it
+sound like magic — a model that classifies text into categories it was never
+shown during training. The mechanism behind it is a clever reuse of NLI, and
+it is worth spelling out step by step:
+
+1. The page loads [transformers.js](https://huggingface.co/docs/transformers.js),
+   a JavaScript port of the Hugging Face `transformers` library that runs
+   models with ONNX Runtime Web. On first use, the browser downloads the
+   quantized model weights and caches them, so later visits skip the
+   download entirely.
+2. Your input text becomes the **premise** — the sentence whose meaning is
+   being tested.
+3. Each candidate label you typed is silently turned into a **hypothesis**
+   sentence using a template, typically "This example is about
+   `{label}`." So if you typed the label `shipping`, the model never sees
+   the word "shipping" as a category tag — it sees the sentence "This
+   example is about shipping," and is asked whether your input text
+   entails that sentence.
+4. The model runs once per candidate label, scoring how strongly the premise
+   (your text) **entails** each hypothesis, locally, using WebGPU when it's
+   available and falling back to WebAssembly otherwise. This is the same
+   entailment score an NLI model produces for any premise/hypothesis pair —
+   nothing about the model's weights changes between labels.
+5. The entailment scores across all your labels are normalized (via a
+   softmax) into a single ranking that sums to 1, and the page renders that
+   ranking as the confidence bars shown above.
+
+This is why the trick works at all: the model was never taught "shipping" or
+"billing" as fixed output classes the way an ImageNet classifier is fixed to
+1000 categories. It only ever learned to judge entailment between two
+sentences, and any label you invent gets folded into that same judgment
+through the hypothesis template. That is also why the exact wording of a
+label matters — "shipping" and "delivery problems" produce two different
+hypothesis sentences, and the model scores each hypothesis on its own terms,
+so rephrasing a label can shift the ranking even when the underlying meaning
+feels identical to a human reader.
+
+## Integration
+
+The same pipeline can be called from either Python or JavaScript, as shown
+below.
+
+<CodeTabs>
+  <Fragment slot="python">
+    ```python
+    from transformers import pipeline
+
+    classifier = pipeline(
+        "zero-shot-classification",
+        model="cross-encoder/nli-deberta-v3-xsmall",
+    )
+    result = classifier(
+        "My package never arrived and nobody answered my emails.",
+        candidate_labels=["shipping", "billing", "product quality"],
+    )
+    print(result)
+    # {'sequence': '...', 'labels': ['shipping', 'billing', 'product quality'],
+    #  'scores': [0.88, 0.07, 0.05]}
+    ```
+  </Fragment>
+  <Fragment slot="javascript">
+    ```javascript
+    import { pipeline } from "@huggingface/transformers";
+
+    const classifier = await pipeline(
+      "zero-shot-classification",
+      "Xenova/nli-deberta-v3-xsmall",
+    );
+    const result = await classifier(
+      "My package never arrived and nobody answered my emails.",
+      { candidate_labels: ["shipping", "billing", "product quality"] },
+    );
+    console.log(result);
+    // { sequence: "...", labels: ["shipping", "billing", "product quality"],
+    //   scores: [0.88, 0.07, 0.05] }
+    ```
+  </Fragment>
+</CodeTabs>
