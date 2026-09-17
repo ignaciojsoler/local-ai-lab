@@ -1,0 +1,95 @@
+---
+title: "Image classification"
+summary: "Drop in a photo and get the top five ImageNet labels, computed on your own machine."
+task: "image-classification"
+model: "Xenova/vit-base-patch16-224"
+sizeLabel: "~88 MB"
+order: 2
+---
+
+import CodeTabs from "../../components/demo-kit/CodeTabs.astro";
+import ImageClassificationDemo from "../../components/demos/ImageClassificationDemo.tsx";
+
+<ImageClassificationDemo
+  client:visible
+  model="Xenova/vit-base-patch16-224"
+  sizeLabel="~88 MB"
+/>
+
+## What this does
+
+Pick one of the sample photos or upload your own, and this page returns the
+top five labels the model thinks describe the image, each with a confidence
+score. The model download and every classification run happen entirely
+inside your browser tab — no image you upload is ever sent to a server, and
+the demo keeps working offline once the model has loaded.
+
+## The model
+
+This demo runs [`vit-base-patch16-224`](https://huggingface.co/google/vit-base-patch16-224),
+a Vision Transformer (ViT) trained on ImageNet-21k and fine-tuned for
+classification over the standard 1000-category ImageNet-1k label set. ViT
+applies the transformer architecture — originally built for text — directly
+to images, treating an image as a sequence of patches the same way a
+sentence is treated as a sequence of tokens. The build used here is the
+[`Xenova/vit-base-patch16-224`](https://huggingface.co/Xenova/vit-base-patch16-224)
+ONNX export, quantized to around 88 MB, prepared for the transformers.js
+runtime.
+
+## How it works
+
+1. The page loads [transformers.js](https://huggingface.co/docs/transformers.js),
+   a JavaScript port of the Hugging Face `transformers` library that runs
+   models with ONNX Runtime Web.
+2. On first use, the browser downloads the quantized model weights and caches
+   them, so later visits skip the download entirely.
+3. The chosen image is split into a grid of 16×16 pixel patches. Each patch
+   is flattened and linearly projected into an embedding, exactly the way a
+   word is turned into a token embedding in a text transformer.
+4. Those patch embeddings, plus a position embedding for each one, are fed
+   through the transformer encoder locally, using WebGPU when it's available
+   and falling back to WebAssembly otherwise. A classification head on top
+   produces a probability over all 1000 ImageNet categories, and the page
+   renders the top five immediately.
+
+Because classification is a search over a fixed list of 1000 categories, the
+model can only ever answer with one of those labels — it has no way to say
+"I don't recognize this." A photo of something outside ImageNet's vocabulary,
+like a specific person or a niche object, still gets forced into the closest
+matching category, often with a surprisingly high confidence score. That's
+worth keeping in mind when reading the results: a high score means "this is
+the best match among 1000 fixed options," not "this is definitely correct."
+
+## Integration
+
+The same pipeline can be called from either Python or JavaScript, as shown
+below.
+
+<CodeTabs>
+  <Fragment slot="python">
+    ```python
+    from transformers import pipeline
+
+    classifier = pipeline(
+        "image-classification",
+        model="google/vit-base-patch16-224",
+    )
+    result = classifier("photo.jpg", top_k=5)
+    print(result)
+    # [{'label': 'golden retriever', 'score': 0.81}, ...]
+    ```
+  </Fragment>
+  <Fragment slot="javascript">
+    ```javascript
+    import { pipeline } from "@huggingface/transformers";
+
+    const classifier = await pipeline(
+      "image-classification",
+      "Xenova/vit-base-patch16-224",
+    );
+    const result = await classifier("photo.jpg", { top_k: 5 });
+    console.log(result);
+    // [{ label: "golden retriever", score: 0.81 }, ...]
+    ```
+  </Fragment>
+</CodeTabs>
