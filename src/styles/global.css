@@ -8,6 +8,7 @@
   --color-text: theme("colors.black" / 50%);
   --color-text-heading: theme("colors.black");
   --color-border: theme("colors.black" / 15%);
+  --color-danger: theme("colors.red.600");
 }
 
 html.dark {
@@ -16,6 +17,7 @@ html.dark {
   --color-text: theme("colors.white" / 75%);
   --color-text-heading: theme("colors.white");
   --color-border: theme("colors.white" / 30%);
+  --color-danger: theme("colors.red.400");
 }
 
 html {
