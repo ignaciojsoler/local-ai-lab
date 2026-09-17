@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DemoShell } from "../demo-kit/DemoShell";
 import { ConfidenceBar } from "../demo-kit/ConfidenceBar";
 import { useModel } from "../demo-kit/useModel";
@@ -21,6 +21,22 @@ export default function ImageClassificationDemo({
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [predictions, setPredictions] = useState<Prediction[]>([]);
 
+  // `imageUrl` holds either a static sample path (never revoked, nothing to
+  // clean up) or an object URL created from an uploaded file. Only the
+  // latter needs revoking, and only once it is no longer the one on screen,
+  // so we track it separately rather than revoking whatever `imageUrl` last
+  // held.
+  const objectUrlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+        objectUrlRef.current = null;
+      }
+    };
+  }, []);
+
   const modelState = useModel({ task: "image-classification", model });
 
   async function classify(url: string) {
@@ -33,7 +49,15 @@ export default function ImageClassificationDemo({
   function handleUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
-    void classify(URL.createObjectURL(file));
+    // Revoke the previous upload's object URL now that it is being
+    // replaced. The one currently displayed (if any) is exactly the one
+    // stored here, so this never revokes a URL still on screen.
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+    }
+    const url = URL.createObjectURL(file);
+    objectUrlRef.current = url;
+    void classify(url);
   }
 
   return (
