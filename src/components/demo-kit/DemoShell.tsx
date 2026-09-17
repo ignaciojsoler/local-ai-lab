@@ -30,7 +30,7 @@ export function DemoShell({
       )}
 
       {model.error && (
-        <p role="alert" className="font-mono text-xs text-red-400">
+        <p role="alert" className="font-mono text-xs text-[var(--color-danger)]">
           {model.error}
         </p>
       )}
