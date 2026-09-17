@@ -1,0 +1,26 @@
+---
+import { getCollection } from "astro:content";
+import PageLayout from "@layouts/PageLayout.astro";
+import Link from "@components/Link.astro";
+
+const demos = (await getCollection("demos")).sort((a, b) => a.data.order - b.data.order);
+---
+
+<PageLayout
+  title="Demos"
+  description="Hugging Face models running entirely in your browser."
+>
+  <article class="space-y-8">
+    <h1 class="font-semibold text-black dark:text-white">Demos</h1>
+    <ul class="space-y-6">
+      {demos.map((entry) => (
+        <li>
+          <Link href={`/demos/${entry.id}`} aria-label={entry.data.title}>
+            <h2 class="font-semibold text-black dark:text-white">{entry.data.title}</h2>
+          </Link>
+          <p>{entry.data.summary}</p>
+        </li>
+      ))}
+    </ul>
+  </article>
+</PageLayout>

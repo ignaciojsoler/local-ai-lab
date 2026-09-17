@@ -1,0 +1,75 @@
+---
+title: "Review sentiment analysis"
+summary: "Classify a product review as positive or negative, without sending a single character to a server."
+task: "text-classification"
+model: "Xenova/distilbert-base-uncased-finetuned-sst-2-english"
+sizeLabel: "~67 MB"
+order: 1
+---
+
+import CodeTabs from "../../components/demo-kit/CodeTabs.astro";
+
+## What this does
+
+Paste a product review below and this page classifies it as **positive** or
+**negative**. The entire model download and every inference run happen inside
+your browser tab. No text you type is ever sent to a server, and the demo
+keeps working even if you go offline once the model has loaded.
+
+## The model
+
+This demo runs [`distilbert-base-uncased-finetuned-sst-2-english`](https://huggingface.co/distilbert/distilbert-base-uncased-finetuned-sst-2-english),
+a distilled version of BERT fine-tuned on the Stanford Sentiment Treebank
+(SST-2). DistilBERT keeps roughly 97% of BERT's language understanding while
+being about 40% smaller and 60% faster, which makes it practical to download
+and run directly in a browser tab. The build used here is the
+[`Xenova/distilbert-base-uncased-finetuned-sst-2-english`](https://huggingface.co/Xenova/distilbert-base-uncased-finetuned-sst-2-english)
+ONNX export, quantized to around 67 MB, prepared for the transformers.js
+runtime.
+
+## How it works
+
+1. The page loads [transformers.js](https://huggingface.co/docs/transformers.js),
+   a JavaScript port of the Hugging Face `transformers` library that runs
+   models with ONNX Runtime Web.
+2. On first use, the browser downloads the quantized model weights and caches
+   them, so later visits skip the download entirely.
+3. Your review text is tokenized and run through the model locally, using
+   WebGPU when it's available and falling back to WebAssembly otherwise.
+4. The model outputs a label (`POSITIVE` or `NEGATIVE`) with a confidence
+   score, which the page renders immediately.
+
+The same pipeline can be called from either Python or JavaScript, as shown
+below.
+
+<CodeTabs>
+  <Fragment slot="python">
+    ```python
+    from transformers import pipeline
+
+    classifier = pipeline(
+        "text-classification",
+        model="distilbert-base-uncased-finetuned-sst-2-english",
+    )
+    result = classifier("This product exceeded my expectations!")
+    print(result)
+    # [{'label': 'POSITIVE', 'score': 0.9998}]
+    ```
+  </Fragment>
+  <Fragment slot="javascript">
+    ```javascript
+    import { pipeline } from "@huggingface/transformers";
+
+    const classifier = await pipeline(
+      "text-classification",
+      "Xenova/distilbert-base-uncased-finetuned-sst-2-english",
+    );
+    const result = await classifier("This product exceeded my expectations!");
+    console.log(result);
+    // [{ label: "POSITIVE", score: 0.9998 }]
+    ```
+  </Fragment>
+</CodeTabs>
+
+The interactive version of this demo, embedded directly on this page, is
+coming next.
