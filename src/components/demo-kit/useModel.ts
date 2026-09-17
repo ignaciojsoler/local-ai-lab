@@ -43,9 +43,13 @@ export function useModel(config: UseModelConfig): UseModelState {
   // dispose() rejects every pending request, and without this flag those
   // rejections would otherwise reach setState on an unmounted component.
   const mountedRef = useRef(true);
+  // Set synchronously at the start of load(), before the first await, so a
+  // second load() fired before detectBackend() resolves is rejected by this
+  // check rather than racing past it (clientRef isn't assigned until after
+  // that await). Cleared once loading settles either way.
+  const loadingRef = useRef(false);
 
   useEffect(() => {
-    mountedRef.current = true;
     return () => {
       mountedRef.current = false;
       clientRef.current?.dispose();
@@ -54,34 +58,37 @@ export function useModel(config: UseModelConfig): UseModelState {
   }, []);
 
   const load = useCallback(async () => {
-    if (clientRef.current) return;
+    if (loadingRef.current || clientRef.current) return;
+    loadingRef.current = true;
 
     setStatus("loading");
     setError(null);
 
-    const device = await detectBackend();
-    if (!mountedRef.current) return;
-    setBackend(device);
-
-    const client = createInferenceClient({
-      task: config.task,
-      model: config.model,
-      device,
-      createWorker: config.createWorker ?? defaultWorkerFactory,
-    });
-    clientRef.current = client;
-
     try {
+      const device = await detectBackend();
+      if (!mountedRef.current) return;
+      setBackend(device);
+
+      const client = createInferenceClient({
+        task: config.task,
+        model: config.model,
+        device,
+        createWorker: config.createWorker ?? defaultWorkerFactory,
+      });
+      clientRef.current = client;
+
       await client.load((update) => {
         if (mountedRef.current) setProgress(update.progress);
       });
       if (!mountedRef.current) return;
       setStatus("ready");
     } catch (cause) {
-      if (clientRef.current === client) clientRef.current = null;
+      clientRef.current = null;
       if (!mountedRef.current) return;
       setError(cause instanceof Error ? cause.message : String(cause));
       setStatus("error");
+    } finally {
+      loadingRef.current = false;
     }
   }, [config.task, config.model, config.createWorker]);
 
