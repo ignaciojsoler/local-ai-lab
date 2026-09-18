@@ -10,3 +10,4 @@ license's attribution requirement for redistributing these images.
 | `espresso.jpg` | Julius Schorzman | CC BY-SA 2.0 | https://creativecommons.org/licenses/by-sa/2.0 | https://commons.wikimedia.org/wiki/File:A_small_cup_of_coffee.JPG |
 | `zebras.jpg` | Sandra Aceng | CC BY-SA 4.0 | https://creativecommons.org/licenses/by-sa/4.0 | https://commons.wikimedia.org/wiki/File:Two_Zebras_standing_in_a_lush_Ugandan_savanna_in_Lake_Mburo_National_Park_28.jpg |
 | `speech-en.wav` | John F. Kennedy, inaugural address (1961) | Public domain | US federal government work | https://www.jfklibrary.org/asset-viewer/archives/jfkwha-001 |
+| `speech-librivox.mp3`, `speech-pooh.mp3` | LibriVox volunteers, *Winnie-the-Pooh* (1926) by A. A. Milne | Public domain | LibriVox recordings are released into the public domain | https://commons.wikimedia.org/wiki/File:LibriVox_-_Winnie-the-Pooh_(1926)_03.mp3 |

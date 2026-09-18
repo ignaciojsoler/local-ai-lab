@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { DemoShell } from "../demo-kit/DemoShell";
 import { useModel } from "../demo-kit/useModel";
 import { useAutoRun } from "../demo-kit/useAutoRun";
@@ -38,9 +38,17 @@ export default function TranslationDemo({
   const [text, setText] = useState(SAMPLES[0].text);
   const [translation, setTranslation] = useState("");
 
+  // Only the newest run may write. A slower earlier one finishing later used
+  // to leave its text prepended to the new one: one output made of two.
+  const runIdRef = useRef(0);
+
   const modelState = useModel({ task: "translation", model });
 
   async function translate(source: string) {
+    const runId = runIdRef.current + 1;
+    runIdRef.current = runId;
+    const isCurrent = () => runIdRef.current === runId;
+
     setTranslation("");
     // The third argument subscribes to the decoder, so the Spanish arrives
     // word by word instead of appearing whole when the run is over.
@@ -49,7 +57,7 @@ export default function TranslationDemo({
     );
     // The streamed chunks and the final result say the same thing; taking the
     // result as the last word keeps a dropped chunk from truncating it.
-    if (output?.[0]) setTranslation(output[0].translation_text.trim());
+    if (output?.[0] && isCurrent()) setTranslation(output[0].translation_text.trim());
   }
 
   useAutoRun(modelState.status, () => void translate(SAMPLES[0].text));

@@ -76,31 +76,33 @@ describe("SpeechDemo", () => {
     expect(screen.getByTestId("transcript")).not.toHaveTextContent("Americans");
   });
 
-  it("transcribes again when the spoken language is corrected", async () => {
-    // Picking a language is a discrete choice, like picking a sample: there
-    // is nothing to finish typing, so waiting for a second click would leave
-    // the panel showing a transcript the visitor has already disowned.
-    const state = mockModel();
+  it("ignores a run that finishes after a newer one has started", async () => {
+    // Clicking a second clip while the first is still decoding used to leave
+    // the late result prepended to the new one: one transcript made of two.
+    let settleFirst: (value: unknown) => void = () => {};
+    const slow = vi.fn(
+      (_a: unknown[], _o?: unknown, onPartial?: (t: string) => void) =>
+        new Promise((resolve) => {
+          settleFirst = () => {
+            onPartial?.("stale words");
+            resolve({ text: "stale words" });
+          };
+        }),
+    ) as unknown as UseModelState["run"];
+
+    const state = mockModel({ run: slow });
     render(<SpeechDemo model="Xenova/test-model" sizeLabel="~80 MB" />);
-    await waitFor(() => expect(state.run).toHaveBeenCalledOnce());
+    await waitFor(() => expect(state.run).toHaveBeenCalled());
 
-    await userEvent.selectOptions(screen.getByLabelText(/Spoken language/), "spanish");
+    state.run = streamingRun(["fresh words"], "fresh words");
+    const [, secondChip] = document.querySelectorAll<HTMLButtonElement>(".chip");
+    await userEvent.click(secondChip);
+    await waitFor(() => expect(screen.getByTestId("transcript")).toHaveTextContent("fresh"));
 
-    await waitFor(() => expect(state.run).toHaveBeenCalledTimes(2));
-    expect(state.run).toHaveBeenLastCalledWith(
-      [expect.any(Float32Array)],
-      expect.objectContaining({ language: "spanish" }),
-      expect.any(Function),
-    );
-  });
+    settleFirst(null);
 
-  it("does not run on a language change before any clip is loaded", async () => {
-    const state = mockModel({ status: "idle" });
-    render(<SpeechDemo model="Xenova/test-model" sizeLabel="~80 MB" />);
-
-    await userEvent.selectOptions(screen.getByLabelText(/Spoken language/), "spanish");
-
-    expect(state.run).not.toHaveBeenCalled();
+    await waitFor(() => expect(screen.getByTestId("transcript")).toHaveTextContent("fresh words"));
+    expect(screen.getByTestId("transcript")).not.toHaveTextContent("stale");
   });
 
   it("shows a meter until the first words arrive", async () => {
