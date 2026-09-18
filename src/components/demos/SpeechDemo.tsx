@@ -56,6 +56,12 @@ export default function SpeechDemo({
 
   const modelState = useModel({ task: "automatic-speech-recognition", model });
   const running = modelState.status === "running";
+  // The decoder's first chunk is a lone space (Whisper tokenizes the first
+  // word with a leading space, and the streamer only flushes up to the last
+  // space it has seen). That space is truthy, so keying "there is a result"
+  // off the raw string hid the meter one token before the first word — the
+  // panel looked empty in between. Only visible text counts.
+  const hasText = text.trim().length > 0;
 
   async function transcribe(src: string) {
     const runId = runIdRef.current + 1;
@@ -145,19 +151,19 @@ export default function SpeechDemo({
           <div className="demo-col-head">
             <span className="eyebrow">Transcript</span>
             <span className="eyebrow">
-              {running ? "Decoding…" : text ? "Done" : "Awaiting input"}
+              {running ? "Decoding…" : hasText ? "Done" : "Awaiting input"}
             </span>
           </div>
 
           {/* The encoder runs before the first token exists. Until then this is
               a meter rather than a blinking caret on an empty line. */}
-          {running && !text && (
+          {running && !hasText && (
             <PendingResult running label="Decoding the audio" />
           )}
 
           <p
             data-testid="transcript"
-            className={running && text ? "transcription is-streaming" : "transcription"}
+            className={running && hasText ? "transcription is-streaming" : "transcription"}
           >
             {text}
           </p>
