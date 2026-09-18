@@ -27,7 +27,7 @@ export function ModelCacheStatus({ model }: { model: string }) {
 
   return (
     <p className="eyebrow">
-      On this device · {formatBytes(bytes)} <span className="signal-dot" aria-hidden="true" />
+      On device · {formatBytes(bytes)} <span className="signal-dot" aria-hidden="true" />
     </p>
   );
 }
