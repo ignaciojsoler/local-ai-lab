@@ -5,8 +5,13 @@ import { useModel } from "../demo-kit/useModel";
 
 type ZeroShotOutput = { sequence: string; labels: string[]; scores: number[] };
 
-const DEFAULT_TEXT = "My package never arrived and nobody answered my emails.";
-const DEFAULT_LABELS = "shipping, billing, product quality";
+/**
+ * An ordinary sentence and three categories a person clearly invented on the
+ * spot. The gap between them is the demonstration: no classifier was ever
+ * trained on "revenge plot", and the model still ranks it.
+ */
+const DEFAULT_TEXT = "My neighbour's dog has been barking since four in the morning.";
+const DEFAULT_LABELS = "noise complaint, dog appreciation, revenge plot";
 
 function parseLabels(raw: string): string[] {
   return raw

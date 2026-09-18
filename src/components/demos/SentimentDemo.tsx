@@ -5,10 +5,27 @@ import { useModel } from "../demo-kit/useModel";
 
 type Prediction = { label: string; score: number };
 
+/**
+ * Restaurant reviews, because the task has to be legible before the result
+ * is: everyone knows what a review is and what a good one sounds like.
+ *
+ * Each sample is named after what it demonstrates rather than its position,
+ * and each is one this model reads correctly — `mixed` in particular, where
+ * the complaint about the wait does not drag the verdict negative.
+ */
 const SAMPLES = [
-  "The battery lasts all day and the screen is gorgeous. Worth every penny.",
-  "Arrived scratched, and support never replied. I want a refund.",
-  "It does the job, though the app crashes more often than I would like.",
+  {
+    name: "glowing",
+    text: "Best carbonara I've had outside Rome. I went back the next day.",
+  },
+  {
+    name: "fly_in_soup",
+    text: "There was a fly in my soup. An actual fly. In my actual soup.",
+  },
+  {
+    name: "mixed",
+    text: "Took forty minutes to arrive, but honestly it was worth the wait.",
+  },
 ];
 
 export default function SentimentDemo({
@@ -18,7 +35,7 @@ export default function SentimentDemo({
   model: string;
   sizeLabel: string;
 }) {
-  const [text, setText] = useState(SAMPLES[0]);
+  const [text, setText] = useState(SAMPLES[0].text);
   const [prediction, setPrediction] = useState<Prediction | null>(null);
 
   const modelState = useModel({ task: "text-classification", model });
@@ -47,14 +64,14 @@ export default function SentimentDemo({
             />
 
             <div className="flex flex-wrap gap-2">
-              {SAMPLES.map((sample, index) => (
+              {SAMPLES.map((sample) => (
                 <button
-                  key={sample}
+                  key={sample.name}
                   type="button"
-                  onClick={() => setText(sample)}
-                  className={sample === text ? "chip is-active" : "chip"}
+                  onClick={() => setText(sample.text)}
+                  className={sample.text === text ? "chip is-active" : "chip"}
                 >
-                  sample_{index + 1}
+                  {sample.name}
                 </button>
               ))}
             </div>
