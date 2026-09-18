@@ -1,4 +1,4 @@
-# Local AI Lab
+# LOCAL-AI-LAB
 
 A portfolio of Hugging Face models running entirely in your browser. No backend, no API keys, no data leaving your device: every demo downloads a model straight from the Hugging Face CDN and runs inference on your own machine, using WebGPU when it's available and falling back to WASM when it's not.
 
