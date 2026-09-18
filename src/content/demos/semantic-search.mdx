@@ -14,7 +14,7 @@ export const python = String.raw`from sentence_transformers import SentenceTrans
 # normalization below are what turn token vectors into one comparable vector.
 model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
-query = "An animal resting on furniture"
+query = "A pet taking a nap at home"
 documents = [
     "The cat is sleeping on the sofa.",
     "The stock market fell sharply after the announcement.",
@@ -25,8 +25,8 @@ scores = vectors[0] @ vectors[1:].T
 
 for document, score in sorted(zip(documents, scores), key=lambda p: -p[1]):
     print(f"{score:.2f}  {document}")
-# ~0.32  The cat is sleeping on the sofa.
-# ~0.01  The stock market fell sharply after the announcement.
+# ~0.35  The cat is sleeping on the sofa.
+# ~0.00  The stock market fell sharply after the announcement.
 # Approximate: the quantized build used in the browser shifts them slightly.`;
 
 export const javascript = String.raw`import { pipeline } from "@huggingface/transformers";
@@ -36,7 +36,7 @@ const extractor = await pipeline(
   "Xenova/all-MiniLM-L6-v2",
 );
 
-const query = "An animal resting on furniture";
+const query = "A pet taking a nap at home";
 const documents = [
   "The cat is sleeping on the sofa.",
   "The stock market fell sharply after the announcement.",
@@ -73,18 +73,19 @@ Type a question and a handful of documents, and the page ranks the documents
 by how close their **meaning** is to the question — not by which words they
 share.
 
-Search the five sentences above for "an animal resting on furniture" and the
-top result is "The cat is sleeping on the sofa."
+Search the five sentences above for "a pet taking a nap at home" and the top
+result is "The cat is sleeping on the sofa."
 
-Look at what the query and that sentence have in common: the word **"on"**.
-Nothing else. A keyword search has nothing to work with here — no "animal", no
-"resting", no "furniture" appears in the text it is supposed to find. The
-model has to know that a cat is an animal, that sleeping is a kind of resting,
-and that a sofa is furniture.
+Now look at what those two have in common: **not one word.** Not "pet", not
+"nap", not "home" — not even an article, since one says "a" and the other
+says "the". A keyword search returns nothing at all here. For this to work
+the model has to know that a cat is a pet, that a nap is sleeping, and that a
+sofa is somewhere in a home.
 
-Second place is the puppy with the tennis ball: still an animal, but not
-resting. Then the drop — JavaScript at 0.14, the doctor at 0.05, the stock
-market at 0.01. That ordering is the one you would have produced yourself.
+The margin says the rest: the cat scores **0.35** and the next sentence, about
+a train timetable, scores **0.08**. Two of the five score 0.00. The model is
+not hedging between five vaguely similar sentences; it found the one that
+means what you asked and dismissed the others.
 
 This is the retrieval half of what people mean by "RAG". There is no index
 server, no vector database and no API: the embeddings are computed in this
@@ -115,8 +116,8 @@ is worth spelling out what actually happens:
 4. The query's vector is compared against each document's. A score of 1 means
    the two point the same way; 0 means they are unrelated.
 
-Nothing here is a keyword match. "An animal resting on furniture" and "the cat
-is sleeping on the sofa" share one preposition, and they still land close
+Nothing here is a keyword match. "A pet taking a nap at home" and "the cat is
+sleeping on the sofa" share no word at all, and they still land close
 together, because the training pushed sentences with the same meaning into the
 same region of the space.
 
@@ -126,11 +127,11 @@ from the same model with the same pooling.
 
 ### Read the order, not the number
 
-The scores above are worth a warning. The right answer wins with **0.32** —
-correct, unambiguous, and nowhere near the 1.0 that the phrase "semantic
-similarity" tends to suggest. Rewrite the query to name the cat and the sofa
-outright and the same answer jumps past 0.7 without having become any more
-correct.
+The scores above are worth a warning. The right answer wins with **0.35** —
+unambiguous against a runner-up at 0.08, and still nowhere near the 1.0 that
+the phrase "semantic similarity" tends to suggest. Rewrite the query to name
+the cat and the sofa outright and the same answer jumps past 0.7 without
+having become any more correct.
 
 This is normal for MiniLM. Its scores for short English sentences cluster in a
 narrow band well below 1, because almost any two sentences share some

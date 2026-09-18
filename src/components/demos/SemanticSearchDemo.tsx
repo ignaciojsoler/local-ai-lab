@@ -5,22 +5,22 @@ import { useModel } from "../demo-kit/useModel";
 import { rankBySimilarity, type EmbeddingMatrix, type RankedDocument } from "../../lib/similarity";
 
 /**
- * Five unrelated sentences and a query that shares one word with the right
- * answer: "on". Everything else has to be understood — cat as an animal,
- * sleeping as resting, a sofa as furniture — so nothing here can be
- * explained away as keyword matching.
+ * Five unrelated sentences and a query that shares **no word at all** with
+ * the right answer — not even an article. Every link has to be understood:
+ * pet as cat, nap as sleeping, home as the room the sofa is in.
  *
- * The runner-up is the other animal sentence, which is the ranking a person
- * would produce too.
+ * The distractors are deliberately on other subjects. An earlier version put
+ * a second animal sentence among them and it scored 0.26 against the cat's
+ * 0.32, which is a correct ranking that reads as a close call.
  */
-const DEFAULT_QUERY = "An animal resting on furniture";
+const DEFAULT_QUERY = "A pet taking a nap at home";
 
 const DEFAULT_DOCUMENTS = [
   "The cat is sleeping on the sofa.",
-  "A puppy is playing with a tennis ball.",
   "The stock market fell sharply after the announcement.",
   "JavaScript is widely used to build interactive websites.",
   "A doctor examined the patient and prescribed antibiotics.",
+  "The train to the airport leaves every twenty minutes.",
 ].join("\n");
 
 function parseDocuments(raw: string): string[] {
