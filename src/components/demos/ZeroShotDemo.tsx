@@ -31,51 +31,76 @@ export default function ZeroShotDemo({
 
   async function classify() {
     setResults([]);
-    const output = await modelState.run<ZeroShotOutput>(text, { candidate_labels: labels });
+    const output = await modelState.run<ZeroShotOutput>([text, labels]);
     if (!output) return;
     setResults(output.labels.map((label, index) => ({ label, score: output.scores[index] })));
   }
 
   return (
     <DemoShell model={modelState} sizeLabel={sizeLabel}>
-      <div className="flex flex-col gap-4">
-        <label className="field-label">
-          <span>Text to classify</span>
-          <textarea
-            value={text}
-            onChange={(event) => setText(event.target.value)}
-            rows={3}
-            className="field"
-          />
-        </label>
-
-        <label className="field-label">
-          <span>Candidate labels (comma separated)</span>
-          <input
-            value={rawLabels}
-            onChange={(event) => setRawLabels(event.target.value)}
-            className="field"
-          />
-        </label>
-
-        <button
-          type="button"
-          onClick={() => void classify()}
-          disabled={
-            text.trim() === "" || labels.length < 2 || modelState.status === "running"
-          }
-          className="btn btn-primary w-fit"
-        >
-          {modelState.status === "running" ? "Classifying…" : "Classify"}
-        </button>
-
-        {results.length > 0 && (
-          <div className="flex flex-col gap-2">
-            {results.map((result) => (
-              <ConfidenceBar key={result.label} label={result.label} score={result.score} />
-            ))}
+      <div className="demo-columns">
+        <div>
+          <div className="demo-col-head">
+            <span className="eyebrow">Data input</span>
+            <span className="eyebrow">{labels.length} labels</span>
           </div>
-        )}
+
+          <div className="flex flex-col gap-3">
+            <label className="field-label">
+              <span className="eyebrow">Text to classify</span>
+              <textarea
+                value={text}
+                onChange={(event) => setText(event.target.value)}
+                rows={4}
+                className="field"
+              />
+            </label>
+
+            <label className="field-label">
+              <span className="eyebrow">Candidate labels (comma separated)</span>
+              <input
+                value={rawLabels}
+                onChange={(event) => setRawLabels(event.target.value)}
+                className="field"
+              />
+            </label>
+
+            <button
+              type="button"
+              onClick={() => void classify()}
+              disabled={
+                text.trim() === "" || labels.length < 2 || modelState.status !== "ready"
+              }
+              className="btn btn-primary w-fit"
+            >
+              {modelState.status === "running" ? "Classifying…" : "Classify"}
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <div className="demo-col-head">
+            <span className="eyebrow">Probabilities</span>
+            <span className="eyebrow">
+              {results.length > 0 ? "Ranked" : "Awaiting input"}
+            </span>
+          </div>
+
+          {results.length > 0 ? (
+            <div>
+              {results.map((result, rank) => (
+                <ConfidenceBar
+                  key={result.label}
+                  label={result.label}
+                  score={result.score}
+                  rank={rank}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="eyebrow">No run yet</p>
+          )}
+        </div>
       </div>
     </DemoShell>
   );

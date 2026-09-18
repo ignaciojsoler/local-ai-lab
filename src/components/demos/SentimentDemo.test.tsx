@@ -12,6 +12,10 @@ function mockModel(overrides: Partial<UseModelState> = {}) {
     backend: "wasm",
     durationMs: 31,
     error: null,
+    cached: true,
+    probing: false,
+    cacheSize: null,
+    clear: vi.fn(),
     load: vi.fn(),
     run: vi.fn().mockResolvedValue([{ label: "POSITIVE", score: 0.9812 }]),
     ...overrides,
@@ -29,16 +33,16 @@ describe("SentimentDemo", () => {
     await userEvent.type(screen.getByRole("textbox"), "Loved it");
     await userEvent.click(screen.getByRole("button", { name: /Analyze/ }));
 
-    expect(state.run).toHaveBeenCalledWith("Loved it");
+    expect(state.run).toHaveBeenCalledWith(["Loved it"]);
     expect(await screen.findByText("POSITIVE")).toBeInTheDocument();
-    expect(screen.getByText("98.1%")).toBeInTheDocument();
+    expect(screen.getByText("0.98")).toBeInTheDocument();
   });
 
   it("fills the textarea when a sample review is picked", async () => {
     mockModel();
     render(<SentimentDemo model="Xenova/test-model" sizeLabel="~67 MB" />);
 
-    const sample = screen.getAllByRole("button", { name: /^Sample/ })[0];
+    const sample = screen.getAllByRole("button", { name: /^sample_/ })[0];
     await userEvent.click(sample);
 
     expect((screen.getByRole("textbox") as HTMLTextAreaElement).value).not.toBe("");

@@ -4,6 +4,7 @@ summary: "Classify a product review as positive or negative, without sending a s
 task: "text-classification"
 model: "Xenova/distilbert-base-uncased-finetuned-sst-2-english"
 sizeLabel: "~67 MB"
+category: "Language"
 order: 1
 ---
 
@@ -26,6 +27,12 @@ const classifier = await pipeline(
 const result = await classifier("This product exceeded my expectations!");
 console.log(result);
 // [{ label: "POSITIVE", score: 0.9998 }]`;
+
+## Implementation
+
+The same pipeline can be called from either Python or JavaScript.
+
+<CodeTabs python={python} javascript={javascript} />
 
 ## What this does
 
@@ -67,9 +74,3 @@ score. Because the model was fine-tuned only on English movie reviews, it is
 English-only and can be confidently wrong outside that domain: a review in
 another language, or from a very different context such as legal or medical
 text, may still get a high-confidence label that is simply incorrect.
-
-## Integration
-
-The same pipeline can be called from either Python or JavaScript.
-
-<CodeTabs python={python} javascript={javascript} />

@@ -12,6 +12,10 @@ function mockModel(overrides: Partial<UseModelState> = {}) {
     backend: "wasm",
     durationMs: 210,
     error: null,
+    cached: true,
+    probing: false,
+    cacheSize: null,
+    clear: vi.fn(),
     load: vi.fn(),
     run: vi.fn().mockResolvedValue({
       sequence: "My package never arrived",
@@ -35,9 +39,13 @@ describe("ZeroShotDemo", () => {
     await userEvent.type(screen.getByLabelText(/Candidate labels/), "shipping, billing");
     await userEvent.click(screen.getByRole("button", { name: /Classify/ }));
 
-    expect(state.run).toHaveBeenCalledWith("My package never arrived", {
-      candidate_labels: ["shipping", "billing"],
-    });
+    // The candidate labels are a positional argument of the transformers.js
+    // pipeline; handing them over in the options object instead classified
+    // every text against a single "[object Object]" label.
+    expect(state.run).toHaveBeenCalledWith([
+      "My package never arrived",
+      ["shipping", "billing"],
+    ]);
   });
 
   it("renders each label with its score", async () => {
@@ -47,7 +55,7 @@ describe("ZeroShotDemo", () => {
     await userEvent.click(screen.getByRole("button", { name: /Classify/ }));
 
     expect(await screen.findByText("shipping")).toBeInTheDocument();
-    expect(screen.getByText("88.0%")).toBeInTheDocument();
+    expect(screen.getByText("0.88")).toBeInTheDocument();
     expect(screen.getByText("product quality")).toBeInTheDocument();
   });
 

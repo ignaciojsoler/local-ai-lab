@@ -12,6 +12,10 @@ function mockModel(overrides: Partial<UseModelState> = {}) {
     backend: "webgpu",
     durationMs: 48,
     error: null,
+    cached: true,
+    probing: false,
+    cacheSize: null,
+    clear: vi.fn(),
     load: vi.fn(),
     run: vi.fn().mockResolvedValue([
       { label: "golden retriever", score: 0.81 },
@@ -28,7 +32,7 @@ describe("ImageClassificationDemo", () => {
     const state = mockModel();
     render(<ImageClassificationDemo model="Xenova/test-model" sizeLabel="~88 MB" />);
 
-    await userEvent.click(screen.getAllByRole("button", { name: /^Sample/ })[0]);
+    await userEvent.click(screen.getAllByRole("button", { name: /\.jpg$/ })[0]);
 
     expect(state.run).toHaveBeenCalled();
     expect(await screen.findByText("golden retriever")).toBeInTheDocument();
@@ -40,7 +44,7 @@ describe("ImageClassificationDemo", () => {
     render(<ImageClassificationDemo model="Xenova/test-model" sizeLabel="~88 MB" />);
 
     const file = new File(["binary"], "photo.png", { type: "image/png" });
-    await userEvent.upload(screen.getByLabelText(/Upload an image/), file);
+    await userEvent.upload(screen.getByLabelText(/Upload image/), file);
 
     expect(state.run).toHaveBeenCalled();
     expect(await screen.findByText("golden retriever")).toBeInTheDocument();
@@ -50,8 +54,8 @@ describe("ImageClassificationDemo", () => {
     const state = mockModel();
     render(<ImageClassificationDemo model="Xenova/test-model" sizeLabel="~88 MB" />);
 
-    await userEvent.click(screen.getAllByRole("button", { name: /^Sample/ })[0]);
+    await userEvent.click(screen.getAllByRole("button", { name: /\.jpg$/ })[0]);
 
-    expect(state.run).toHaveBeenCalledWith(expect.any(String), { top_k: 5 });
+    expect(state.run).toHaveBeenCalledWith([expect.any(String)], { top_k: 5 });
   });
 });

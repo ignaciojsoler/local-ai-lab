@@ -1,4 +1,6 @@
 ---
+import { Code } from "astro:components";
+
 type Props = {
   python: string;
   javascript: string;
@@ -6,19 +8,31 @@ type Props = {
 
 const { python, javascript } = Astro.props;
 const tabId = `code-tabs-${crypto.randomUUID()}`;
+
+/**
+ * Highlighting runs at build time through Astro's bundled Shiki, so the
+ * snippets ship as coloured markup with no client-side highlighter.
+ */
+const theme = "github-dark-default";
 ---
 
 <div class="code-tabs" data-code-tabs id={tabId}>
   <div role="tablist" aria-label="Language">
     <button type="button" role="tab" data-tab="python" aria-selected="true">Python</button>
-    <button type="button" role="tab" data-tab="javascript" aria-selected="false">JavaScript</button>
+    <button type="button" role="tab" data-tab="javascript" aria-selected="false">
+      JavaScript
+    </button>
+    <span class="code-tabs-file eyebrow" data-file="python">inference_pipeline.py</span>
+    <span class="code-tabs-file eyebrow" data-file="javascript" hidden>
+      inference_pipeline.js
+    </span>
   </div>
 
   <div data-panel="python">
-    <pre><code>{python.trim()}</code></pre>
+    <Code code={python.trim()} lang="python" theme={theme} />
   </div>
   <div data-panel="javascript" hidden>
-    <pre><code>{javascript.trim()}</code></pre>
+    <Code code={javascript.trim()} lang="javascript" theme={theme} />
   </div>
 </div>
 
@@ -34,6 +48,9 @@ const tabId = `code-tabs-${crypto.randomUUID()}`;
       }
       for (const panel of root.querySelectorAll("[data-panel]")) {
         (panel as HTMLElement).hidden = panel.getAttribute("data-panel") !== selected;
+      }
+      for (const file of root.querySelectorAll("[data-file]")) {
+        (file as HTMLElement).hidden = file.getAttribute("data-file") !== selected;
       }
     });
   }

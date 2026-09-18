@@ -4,6 +4,7 @@ summary: "Drop in a photo and get the top five ImageNet labels, computed on your
 task: "image-classification"
 model: "Xenova/vit-base-patch16-224"
 sizeLabel: "~88 MB"
+category: "Vision"
 order: 2
 ---
 
@@ -36,6 +37,12 @@ console.log(result);
   [bicycle.jpg](https://commons.wikimedia.org/wiki/File:Blue_fixed-gear_(track)_bicycle_locked_up.JPG)
   — Pfctdayelise, CC BY-SA 2.5
 </aside>
+
+## Implementation
+
+The same pipeline can be called from either Python or JavaScript.
+
+<CodeTabs python={python} javascript={javascript} />
 
 ## What this does
 
@@ -80,9 +87,3 @@ like a specific person or a niche object, still gets forced into the closest
 matching category, often with a surprisingly high confidence score. That's
 worth keeping in mind when reading the results: a high score means "this is
 the best match among 1000 fixed options," not "this is definitely correct."
-
-## Integration
-
-The same pipeline can be called from either Python or JavaScript.
-
-<CodeTabs python={python} javascript={javascript} />

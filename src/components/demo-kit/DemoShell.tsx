@@ -1,11 +1,13 @@
 import type { ReactNode } from "react";
 import { BackendBadge } from "./BackendBadge";
-import { ModelLoader } from "./ModelLoader";
+import { ClearModelButton } from "./ClearModelButton";
+import { ModelAction, ModelProgress, modelStatusLabel } from "./ModelLoader";
 import type { UseModelState } from "./useModel";
 
 /**
- * The frame every demo sits in: gate the model download, report the backend,
- * and surface errors. A new demo supplies only its own inputs and outputs.
+ * The instrument panel every demo sits in: state the runtime's condition, gate
+ * the download, report the backend, let the visitor take the weights back off
+ * their device. A new demo supplies only its own inputs and outputs.
  */
 export function DemoShell({
   model,
@@ -19,30 +21,45 @@ export function DemoShell({
   const isReady = model.status === "ready" || model.status === "running";
 
   return (
-    <section className="not-prose demo-shell">
-      {!isReady && (
-        <ModelLoader
-          status={model.status}
-          progress={model.progress}
-          sizeLabel={sizeLabel}
-          onLoad={() => void model.load()}
-        />
-      )}
+    <div className="demo-shell">
+      <div className="demo-shell-inner">
+        <div className="demo-shell-head">
+          <h2 className="demo-shell-title">Local runtime test</h2>
+          <span className="eyebrow">{modelStatusLabel(model)}</span>
+          <span className="ml-auto flex items-center gap-4">
+            {isReady && <BackendBadge backend={model.backend} durationMs={model.durationMs} />}
+            <ModelAction model={model} sizeLabel={sizeLabel} />
+          </span>
+        </div>
 
-      {model.error && (
-        <p role="alert" className="font-mono text-xs text-[var(--color-danger)]">
-          {model.error}
-        </p>
-      )}
+        <ModelProgress model={model} sizeLabel={sizeLabel} />
 
-      {isReady && (
-        <>
-          <div className="flex justify-end">
-            <BackendBadge backend={model.backend} durationMs={model.durationMs} />
-          </div>
+        {model.error && (
+          <p
+            role="alert"
+            className="demo-shell-section font-mono text-xs text-[var(--color-danger)]"
+          >
+            {model.error}
+          </p>
+        )}
+
+        {/* The inputs stay on screen before the weights arrive, dimmed and
+            inert: the visitor can see what the instrument does before
+            committing to a download. */}
+        <fieldset
+          className="demo-shell-section demo-shell-body"
+          disabled={!isReady}
+          data-idle={isReady ? undefined : "true"}
+        >
           {children}
-        </>
-      )}
-    </section>
+        </fieldset>
+
+        {model.cached && (
+          <div className="demo-shell-footer">
+            <ClearModelButton cacheSize={model.cacheSize} onClear={() => model.clear()} />
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

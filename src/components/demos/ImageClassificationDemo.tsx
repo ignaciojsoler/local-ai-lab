@@ -42,7 +42,7 @@ export default function ImageClassificationDemo({
   async function classify(url: string) {
     setImageUrl(url);
     setPredictions([]);
-    const output = await modelState.run<Prediction[]>(url, { top_k: 5 });
+    const output = await modelState.run<Prediction[]>([url], { top_k: 5 });
     setPredictions(output ?? []);
   }
 
@@ -62,48 +62,74 @@ export default function ImageClassificationDemo({
 
   return (
     <DemoShell model={modelState} sizeLabel={sizeLabel}>
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap gap-2">
-          {SAMPLES.map((src, index) => (
-            <button
-              key={src}
-              type="button"
-              onClick={() => void classify(src)}
-              className="chip"
-            >
-              Sample {index + 1}
-            </button>
-          ))}
+      <div className="demo-columns">
+        <div>
+          <div className="demo-col-head">
+            <span className="eyebrow">Data input</span>
+            <label className="link-quiet cursor-pointer">
+              Upload image
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleUpload}
+                className="sr-only"
+              />
+            </label>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            {imageUrl ? (
+              <img
+                src={imageUrl}
+                alt=""
+                className="max-h-64 w-full border border-[var(--color-border)] object-cover"
+              />
+            ) : (
+              <p className="eyebrow">Pick a sample or upload an image</p>
+            )}
+
+            <div className="flex flex-wrap gap-2">
+              {SAMPLES.map((src) => (
+                <button
+                  key={src}
+                  type="button"
+                  onClick={() => void classify(src)}
+                  className={src === imageUrl ? "chip is-active" : "chip"}
+                >
+                  {src.split("/").pop()}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
-        <label className="field-label w-fit cursor-pointer">
-          <span>Upload an image</span>
-          <input type="file" accept="image/*" onChange={handleUpload} className="text-xs" />
-        </label>
-
-        {imageUrl && (
-          <img
-            src={imageUrl}
-            alt=""
-            className="max-h-64 w-fit rounded border border-[var(--color-border)]"
-          />
-        )}
-
-        {modelState.status === "running" && (
-          <p className="font-mono text-xs text-[var(--color-muted)]">Classifying…</p>
-        )}
-
-        {predictions.length > 0 && (
-          <div className="flex flex-col gap-2">
-            {predictions.map((prediction) => (
-              <ConfidenceBar
-                key={prediction.label}
-                label={prediction.label}
-                score={prediction.score}
-              />
-            ))}
+        <div>
+          <div className="demo-col-head">
+            <span className="eyebrow">Probabilities</span>
+            <span className="eyebrow">
+              {modelState.status === "running"
+                ? "Classifying…"
+                : predictions.length > 0
+                  ? "Top 5"
+                  : "Awaiting input"}
+            </span>
           </div>
-        )}
+
+          {predictions.length > 0 ? (
+            <div>
+              {predictions.map((prediction, rank) => (
+                <ConfidenceBar
+                  key={prediction.label}
+                  label={prediction.label}
+                  score={prediction.score}
+                  rank={rank}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="eyebrow">No run yet</p>
+          )}
+        </div>
       </div>
     </DemoShell>
   );

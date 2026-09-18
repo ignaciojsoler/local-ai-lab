@@ -1,16 +1,17 @@
 ---
 import { getCollection } from "astro:content";
 import PageLayout from "@layouts/PageLayout.astro";
+import LibraryMeta from "@components/LibraryMeta.astro";
 
 const demos = (await getCollection("demos")).sort((a, b) => a.data.order - b.data.order);
 ---
 
 <PageLayout
-  title="Demos"
+  title="Experiments"
   description="Hugging Face models running entirely in your browser."
 >
   <article class="docs-article">
-    <h1>Demos</h1>
+    <h1>Experiments</h1>
     <p class="lead">
       Three interaction shapes: typed text, an uploaded image, and labels you
       invent at runtime. Each page loads its model only after you ask.
@@ -26,4 +27,8 @@ const demos = (await getCollection("demos")).sort((a, b) => a.data.order - b.dat
       ))}
     </ul>
   </article>
+
+  <Fragment slot="meta">
+    <LibraryMeta demos={demos} />
+  </Fragment>
 </PageLayout>

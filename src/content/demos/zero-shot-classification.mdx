@@ -4,6 +4,7 @@ summary: "Invent your own categories and classify text into them, with no traini
 task: "zero-shot-classification"
 model: "Xenova/nli-deberta-v3-xsmall"
 sizeLabel: "~87 MB"
+category: "Language"
 order: 3
 ---
 
@@ -34,6 +35,12 @@ const result = await classifier(
 console.log(result);
 // { sequence: "...", labels: ["shipping", "billing", "product quality"],
 //   scores: [0.88, 0.07, 0.05] }`;
+
+## Implementation
+
+The same pipeline can be called from either Python or JavaScript.
+
+<CodeTabs python={python} javascript={javascript} />
 
 ## What this does
 
@@ -95,9 +102,3 @@ label matters — "shipping" and "delivery problems" produce two different
 hypothesis sentences, and the model scores each hypothesis on its own terms,
 so rephrasing a label can shift the ranking even when the underlying meaning
 feels identical to a human reader.
-
-## Integration
-
-The same pipeline can be called from either Python or JavaScript.
-
-<CodeTabs python={python} javascript={javascript} />

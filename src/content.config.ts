@@ -13,6 +13,8 @@ const demos = defineCollection({
     model: z.string(),
     /** Human-readable download size shown before fetching, e.g. "~67 MB". */
     sizeLabel: z.string(),
+    /** Grouping label for the left rail, e.g. "Vision" or "Language". */
+    category: z.string(),
     /** Display order on the index page. */
     order: z.number(),
   }),
