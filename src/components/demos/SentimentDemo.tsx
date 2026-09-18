@@ -100,7 +100,11 @@ export default function SentimentDemo({
           </div>
 
           {prediction ? (
-            <ConfidenceBar label={prediction.label} score={prediction.score} />
+            <ConfidenceBar
+              label={prediction.label}
+              score={prediction.score}
+              tone={prediction.label.toUpperCase() === "NEGATIVE" ? "negative" : "positive"}
+            />
           ) : (
             <PendingResult
               running={modelState.status === "running"}

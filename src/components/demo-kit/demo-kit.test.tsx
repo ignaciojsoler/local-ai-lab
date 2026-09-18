@@ -130,6 +130,20 @@ describe("ClearModelButton", () => {
 });
 
 describe("ConfidenceBar", () => {
+  it("marks a negative verdict so it can be coloured as one", () => {
+    // Sentiment is the one demo whose label is a polarity rather than a
+    // category: NEGATIVE 0.99 is not a low score, it is the other answer.
+    const { container } = render(<ConfidenceBar label="NEGATIVE" score={0.99} tone="negative" />);
+
+    expect(container.querySelector(".score-row")).toHaveAttribute("data-tone", "negative");
+  });
+
+  it("carries no tone when the label is just a category", () => {
+    const { container } = render(<ConfidenceBar label="zebra" score={0.99} />);
+
+    expect(container.querySelector(".score-row")).not.toHaveAttribute("data-tone");
+  });
+
   it("renders the label and the score as a percentage", () => {
     render(<ConfidenceBar label="POSITIVE" score={0.9312} />);
     expect(screen.getByText("POSITIVE")).toBeInTheDocument();

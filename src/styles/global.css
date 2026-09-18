@@ -679,8 +679,12 @@ article.docs-article .demo-shell-title {
   line-height: 0;
 }
 
+/* Whole photo, never a crop: the sample is evidence about what the model was
+   shown, so cutting it changes what the reader is judging. */
+.sample-image,
 .detection-frame img {
   display: block;
+  align-self: flex-start;
   width: auto;
   max-width: 100%;
   max-height: 22rem;
@@ -751,7 +755,17 @@ article.docs-article ul.score-list,
   grid-area: meter;
 }
 
-.score-list .score-value {
+.score-list /* Higher specificity than the rank ramp above, so a verdict's polarity wins
+   over its position in a list. */
+.score-row[data-tone="positive"] .meter-fill {
+  background: var(--color-signal);
+}
+
+.score-row[data-tone="negative"] .meter-fill {
+  background: var(--color-danger);
+}
+
+.score-value {
   grid-area: value;
 }
 

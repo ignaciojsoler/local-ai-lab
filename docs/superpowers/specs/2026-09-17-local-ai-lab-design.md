@@ -42,7 +42,7 @@ input, and the smallest model on the site by a factor of three.
 output that is *drawn* rather than listed: boxes positioned over the photo in
 CSS percentages, which track the image through every viewport with no redraw.
 It is also where download size and inference cost visibly come apart — half
-the classifier's weights, roughly twenty times its latency on WASM.
+the classifier's weights, roughly five times its latency on WASM.
 
 Planned next: **handwriting OCR** (`Xenova/trocr-small-handwritten`, ~68 MB)
 for generated text produced token by token. Six is the intended total: past
