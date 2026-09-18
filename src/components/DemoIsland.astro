@@ -4,6 +4,7 @@ import ImageClassificationDemo from "@components/demos/ImageClassificationDemo";
 import ZeroShotDemo from "@components/demos/ZeroShotDemo";
 import SemanticSearchDemo from "@components/demos/SemanticSearchDemo";
 import ObjectDetectionDemo from "@components/demos/ObjectDetectionDemo";
+import TranslationDemo from "@components/demos/TranslationDemo";
 
 type Props = {
   task: string;
@@ -29,5 +30,8 @@ const { task, model, sizeLabel } = Astro.props;
   )}
   {task === "object-detection" && (
     <ObjectDetectionDemo client:load model={model} sizeLabel={sizeLabel} />
+  )}
+  {task === "translation" && (
+    <TranslationDemo client:load model={model} sizeLabel={sizeLabel} />
   )}
 </section>

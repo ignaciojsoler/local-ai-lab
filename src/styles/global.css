@@ -807,6 +807,31 @@ article.docs-article ul.score-list,
   font-variant-numeric: tabular-nums;
 }
 
+/* Generated text, which arrives a few words at a time. */
+.transcription {
+  margin: 0;
+  font-family: theme("fontFamily.mono");
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: var(--color-text-heading);
+}
+
+.transcription.is-streaming::after {
+  content: "";
+  display: inline-block;
+  width: 0.5rem;
+  height: 1em;
+  margin-left: 0.15rem;
+  background: var(--color-signal);
+  vertical-align: text-bottom;
+  animation: caret 1s steps(2) infinite;
+}
+
+@keyframes caret {
+  0%, 50% { opacity: 1; }
+  50.01%, 100% { opacity: 0; }
+}
+
 .link-quiet {
   background: none;
   border: 0;

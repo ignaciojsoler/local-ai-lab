@@ -1,0 +1,100 @@
+---
+title: "Translation"
+summary: "Translate English into Spanish word by word, with the whole model running on your machine."
+task: "translation"
+model: "Xenova/opus-mt-en-es"
+sizeLabel: "~119 MB"
+category: "Language"
+order: 6
+---
+
+export const python = String.raw`from transformers import pipeline
+
+translator = pipeline("translation", model="Helsinki-NLP/opus-mt-en-es")
+
+print(translator("The cat is sleeping on the sofa."))
+# [{'translation_text': 'El gato está durmiendo en el sofá.'}]`;
+
+export const javascript = String.raw`import { pipeline } from "@huggingface/transformers";
+
+const translator = await pipeline("translation", "Xenova/opus-mt-en-es");
+
+console.log(await translator("The cat is sleeping on the sofa."));
+// [{ translation_text: "El gato está durmiendo en el sofá." }]`;
+
+## Implementation
+
+The same pipeline can be called from either Python or JavaScript.
+
+<CodeTabs python={python} javascript={javascript} />
+
+## What this does
+
+Type English, read Spanish. The model is a full translation system running in
+this tab, and the Spanish arrives **a word at a time** rather than appearing
+all at once, because that is the order in which it is produced.
+
+This is the only demo on the site you can check yourself. Everywhere else the
+page hands you a label and a number and asks you to take its word for it —
+*is that a zebra? is that ranking right?* Here both sides are in front of you.
+If the Spanish is wrong, you will know before the page tells you.
+
+## The model
+
+`opus-mt-en-es` comes from the [Helsinki-NLP](https://huggingface.co/Helsinki-NLP)
+group's OPUS-MT project, which published hundreds of translation models
+trained on the OPUS corpus — a collection of texts that already existed in
+several languages, such as film subtitles, software localisations and European
+Parliament proceedings.
+
+It is a **Marian** model: a small, fast encoder-decoder architecture built for
+translation specifically, from before general-purpose language models took the
+job over. It has no instructions, no prompt and no chat. It does one thing.
+
+The quantized ONNX build here is 119 MB — a 53 MB encoder, a 60 MB decoder and
+a 6 MB tokenizer — which makes it the largest download on this site.
+
+## How it works
+
+Translation is **generative**, and that is what separates this demo from the
+other five. Sentiment classification computes one answer in a single pass.
+This model writes its output one token at a time, and each token it writes
+becomes part of the input for the next one.
+
+1. The encoder reads the whole English sentence and turns it into a sequence
+   of vectors. This happens once.
+2. The decoder starts with a begin-of-sequence token and predicts the first
+   Spanish token, attending both to the encoder's output and to what it has
+   written so far.
+3. That token is appended, and the decoder runs again. And again.
+4. It stops when it emits an end-of-sequence token.
+
+The page subscribes to that loop rather than waiting for it. Each token is
+decoded and posted out of the worker as it is produced, which is why the
+Spanish fills in across the panel instead of appearing complete. That is not a
+typing effect: it is the actual rate at which the model is working.
+
+It also explains why a longer sentence takes proportionally longer. The
+encoder runs once; the decoder runs once per word.
+
+## Limitations
+
+**It translates a sentence, not a text.** Each sentence is handled with no
+memory of the ones around it, so a pronoun whose referent lives in the
+previous sentence is a coin flip.
+
+**Formality is not chosen, it is guessed.** Ask it for "Nothing you type here
+is ever sent anywhere. The weights live in your browser." and it returns
+"Nada de lo que escribas aquí se envía a cualquier lugar. Los pesos viven en
+su navegador." — *escribas* is informal, *su navegador* is formal, in
+consecutive sentences. English does not mark the distinction, so there is
+nothing in the input to be consistent about.
+
+That same output shows the sharper failure: "ever sent anywhere" became "se
+envía a cualquier lugar", which means *is sent anywhere* — the negation is
+gone, and the sentence now says the opposite of the original. English builds
+that negative across two words far apart; Spanish wants "a ningún lado".
+
+Both are worth knowing before you put machine translation anywhere it matters:
+the output is fluent, confident, grammatical Spanish, and being wrong does not
+make it look any less so.
