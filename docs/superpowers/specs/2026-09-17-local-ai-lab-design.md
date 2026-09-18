@@ -121,7 +121,7 @@ messages are written in English.
 
 ```
 src/
-  content/demos/            # one .mdx per use case
+  content/experiments/      # one .mdx per use case
     sentiment-analysis.mdx
     image-classification.mdx
     zero-shot-classification.mdx
