@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import SpeechDemo from "./SpeechDemo";
@@ -116,6 +116,35 @@ describe("SpeechDemo", () => {
 
     expect(await screen.findByRole("progressbar", { name: /Running/ })).toBeInTheDocument();
     expect(screen.getByText(/Decoding the audio/)).toBeInTheDocument();
+  });
+
+  it("keeps the meter until the first visible word, not the first space", async () => {
+    // Whisper's first streamed chunk is a lone leading space. The meter used
+    // to vanish on it, leaving the panel blank until the word after it landed.
+    let emit: (chunk: string) => void = () => {};
+    const run = vi.fn(
+      (_args: unknown[], _options?: unknown, onPartial?: (text: string) => void) =>
+        new Promise(() => {
+          emit = (chunk) => onPartial?.(chunk);
+        }),
+    ) as unknown as UseModelState["run"];
+    const state = mockModel({ status: "running", run });
+    render(<SpeechDemo model="Xenova/test-model" sizeLabel="~80 MB" />);
+
+    expect(await screen.findByText(/Decoding the audio/)).toBeInTheDocument();
+
+    const [firstChip] = document.querySelectorAll<HTMLButtonElement>(".chip");
+    await userEvent.click(firstChip);
+    await waitFor(() => expect(state.run).toHaveBeenCalled());
+
+    act(() => emit(" "));
+    expect(screen.getByText(/Decoding the audio/)).toBeInTheDocument();
+
+    act(() => emit("And "));
+    await waitFor(() =>
+      expect(screen.queryByText(/Decoding the audio/)).not.toBeInTheDocument(),
+    );
+    expect(screen.getByTestId("transcript")).toHaveTextContent("And");
   });
 
   it("reports a clip it could not decode instead of transcribing silence", async () => {
