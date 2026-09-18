@@ -88,7 +88,7 @@ export default function ImageClassificationDemo({
               <img
                 src={imageUrl}
                 alt=""
-                className="max-h-64 w-full border border-[var(--color-border)] object-cover"
+                className="sample-image"
               />
             ) : (
               <p className="eyebrow">Pick a sample or upload an image</p>

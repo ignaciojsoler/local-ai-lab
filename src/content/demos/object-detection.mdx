@@ -105,10 +105,12 @@ changes.
 
 ## What it costs to run
 
-Watch the badge above the demo. On a CPU falling back to WebAssembly this
-model takes **several seconds** per photo, where the image classifier on this
-site answers in a few hundred milliseconds — even though DETR's download is
-half the size.
+Watch the badge above the demo. On the same CPU, falling back to
+WebAssembly, this model took around **eight seconds** on the dog photo, where
+the [image classifier](/demos/image-classification) took **about one** on the
+same image — several times the work, from a download half the size. Your own
+numbers will differ, and the badge reports what actually happened on your
+machine rather than a figure quoted from a benchmark.
 
 File size and inference cost are different things, and this page is a good
 place to see them come apart. The classifier makes one pass and produces one
