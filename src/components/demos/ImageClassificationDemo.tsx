@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { DemoShell } from "../demo-kit/DemoShell";
 import { ConfidenceBar } from "../demo-kit/ConfidenceBar";
 import { useModel } from "../demo-kit/useModel";
+import { PendingResult } from "../demo-kit/PendingResult";
 
 type Prediction = { label: string; score: number };
 
@@ -127,7 +128,10 @@ export default function ImageClassificationDemo({
               ))}
             </div>
           ) : (
-            <p className="eyebrow">No run yet</p>
+            <PendingResult
+              running={modelState.status === "running"}
+              label="Classifying the image"
+            />
           )}
         </div>
       </div>

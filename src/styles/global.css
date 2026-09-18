@@ -663,6 +663,57 @@ article.docs-article .demo-shell-title {
   gap: 1rem;
 }
 
+/* The detection overlay is laid out in CSS percentages over the image rather
+   than drawn into a canvas: the boxes then track the photo through every
+   viewport width with no redraw, and each label stays real, selectable text. */
+/* The frame shrink-wraps the photo instead of filling the column. The boxes
+   are percentages of their containing block, so any letterboxing between the
+   container and the rendered image would offset every one of them. */
+.detection-frame {
+  position: relative;
+  display: inline-block;
+  /* The frame is a flex item; without this the column stretches it wider
+     than the photo and every box drifts right. */
+  align-self: flex-start;
+  max-width: 100%;
+  line-height: 0;
+}
+
+.detection-frame img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: 22rem;
+  border: 1px solid var(--color-border);
+}
+
+.detection-box {
+  position: absolute;
+  display: block;
+  border: 1px solid var(--color-signal);
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 45%);
+  pointer-events: none;
+}
+
+/* Inside the box, not above it: a box that touches the top of the photo would
+   otherwise have its label clipped off by the frame. */
+.detection-tag {
+  position: absolute;
+  top: 0;
+  left: 0;
+  max-width: 100%;
+  overflow: hidden;
+  padding: 0.1rem 0.3rem;
+  background: var(--color-signal);
+  color: #04170d;
+  font-family: theme("fontFamily.mono");
+  font-size: 0.625rem;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 /* A score row: mono label, hairline track, right-aligned figure. */
 .score-row {
   display: grid;
