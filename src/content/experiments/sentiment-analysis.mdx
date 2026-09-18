@@ -75,3 +75,11 @@ score. Because the model was fine-tuned only on English movie reviews, it is
 English-only and can be confidently wrong outside that domain: a review in
 another language, or from a very different context such as legal or medical
 text, may still get a high-confidence label that is simply incorrect.
+
+## Limitations
+
+This model knows two labels — positive and negative — and only the
+movie-review English it was fine-tuned on. Neutral, mixed, sarcastic or
+non-English text still gets one of the two labels, often with high
+confidence. Long or domain-specific prose, such as legal or medical writing,
+is outside what it learned.

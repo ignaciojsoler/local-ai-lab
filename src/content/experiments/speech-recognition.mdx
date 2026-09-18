@@ -69,58 +69,26 @@ one token at a time, which is why the transcript fills in as it works.
 
 ## English only, and told so
 
-Whisper can detect the spoken language itself, and on a short clip it detects
-badly. Handed a German sentence with nothing declared, this exact model
-returned:
+Whisper can detect the spoken language itself, but on a short clip it often
+guesses wrong — and then transcribes confidently into the wrong language. So
+the page always declares the language rather than letting the model guess.
 
-> It is the color of the black card and the green card.
-
-Fluent English, confidently produced, with no relation to the audio. Told the
-clip was German, the same model returned every word of it correctly. So the
-page always declares the language rather than letting the model guess.
-
-It declares English, and only English, because that is the only language this
-size of Whisper is good at. A language selector was built and then removed:
-`whisper-base` transcribes accented English well, and a four-second Spanish
-sentence — *"el gato está sobre la tabla"* — came back as *"Fíjate a tua
-estasurrala taula"*. Of the 680,000 hours Whisper was trained on, the large
-majority is English, and the smaller checkpoints spend what capacity they have
-on it.
-
-Offering a choice of language would have been offering a setting with one good
-value. Upload English audio and this works; upload anything else and it will
-produce confident English nonsense.
+It declares English, and only English, because that is where this size of
+Whisper spends its capacity. Most of its training audio is English: accented
+English transcribes well, anything else degrades quickly into confident
+nonsense. A language selector would offer a setting with one good value, so
+there isn't one.
 
 ## Limitations
 
-**It needs clean speech.** Four clips were tested before the one above was
-chosen. The Apollo 11 "one small step" broadcast returned "I'm going to stop
-right now.", and the Apollo 13 transmission returned "I think we're going to
-be in the middle of the day." Both are famous recordings, and both are noisy
-1960s radio — far from the training distribution.
+**It needs clean speech.** Close-mic, quiet recordings work; noisy, far-field
+or archival audio degrades fast. Famous historical recordings on noisy 1960s
+radio, for example, sit far from anything in the training distribution.
 
-**Silence and noise produce invented text, not silence.** The decoder has to
-emit something, so a clip with nothing in it tends to come back with a
-plausible sentence. This is the same failure the generative models on this
-site all share: there is no "I don't know" token.
+**Silence and noise produce invented text, not silence.** The decoder always
+emits something, so a clip with little or no speech tends to come back as a
+plausible-sounding sentence. There is no "I don't know" output.
 
-**Model size shows up as accent robustness.** This page started on
-`whisper-tiny`, 45 MB, which transcribes the Kennedy clip flawlessly. Handed a
-recording of an ordinary sentence read by a non-native English speaker, it
-returned:
-
-> These are all the other ones inside your browser. You will never have to be
-> in the computer.
-
-The sentence read aloud was "This model runs inside your browser. The audio
-never left your computer." The same recording on `whisper-base` came back
-correct. That is the entire difference between the two models here: not the
-famous clip, which both get right, but an ordinary voice, which only the
-larger one does.
-
-**Be suspicious of the Kennedy clip.** It is the demo file shipped with
-Whisper itself, and it flatters the model twice over: a native speaker
-recorded in a studio, reading one of the most quoted sentences in English.
-Whisper's decoder is a language model, so a phrase it has effectively
-memorised needs very little acoustic evidence to produce. Judge the model on
-your own voice instead — the upload button is there for that.
+**Capacity shows up as accent robustness.** Smaller checkpoints handle
+studio-clear native speech but mangle ordinary accented voices that the larger
+ones get right — which is why this page ships `whisper-base`.

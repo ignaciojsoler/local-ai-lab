@@ -79,22 +79,15 @@ encoder runs once; the decoder runs once per word.
 
 ## Limitations
 
-**It translates a sentence, not a text.** Each sentence is handled with no
-memory of the ones around it, so a pronoun whose referent lives in the
-previous sentence is a coin flip.
+**It translates one sentence at a time, with no memory of the surrounding
+text.** A pronoun whose referent lives in the previous sentence is a guess, so
+a paragraph can drift in ways its individual sentences don't show.
 
-**Formality is not chosen, it is guessed.** Ask it for "Nothing you type here
-is ever sent anywhere. The weights live in your browser." and it returns
-"Nada de lo que escribas aquí se envía a cualquier lugar. Los pesos viven en
-su navegador." — *escribas* is informal, *su navegador* is formal, in
-consecutive sentences. English does not mark the distinction, so there is
-nothing in the input to be consistent about.
+**Formality is guessed, not chosen.** English "you" maps to both informal
+*tú* and formal *usted*, so the output can switch between them mid-paragraph
+with nothing in the input to be consistent about.
 
-That same output shows the sharper failure: "ever sent anywhere" became "se
-envía a cualquier lugar", which means *is sent anywhere* — the negation is
-gone, and the sentence now says the opposite of the original. English builds
-that negative across two words far apart; Spanish wants "a ningún lado".
-
-Both are worth knowing before you put machine translation anywhere it matters:
-the output is fluent, confident, grammatical Spanish, and being wrong does not
-make it look any less so.
+**Fluency is not correctness.** Negations and long-range dependencies
+occasionally drop out while the Spanish stays smooth and grammatical — the
+output looks no less confident when it is wrong, so check anything that
+matters.

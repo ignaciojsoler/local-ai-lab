@@ -106,3 +106,11 @@ label matters — "noise complaint" and "the neighbours are too loud" produce tw
 hypothesis sentences, and the model scores each hypothesis on its own terms,
 so rephrasing a label can shift the ranking even when the underlying meaning
 feels identical to a human reader.
+
+## Limitations
+
+Scores are relative to your candidate labels, not absolute: they rank the
+options you typed and sum to one, so the winner can still be a bad
+description of the text. Wording matters — rephrasing a label changes the
+hypothesis sentence the model scores, which can shift the ranking. And each
+label costs a full forward pass, so long label lists get slow.

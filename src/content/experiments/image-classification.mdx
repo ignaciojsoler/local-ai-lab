@@ -87,3 +87,12 @@ like a specific person or a niche object, still gets forced into the closest
 matching category, often with a surprisingly high confidence score. That's
 worth keeping in mind when reading the results: a high score means "this is
 the best match among 1000 fixed options," not "this is definitely correct."
+
+## Limitations
+
+Classification is a search over a fixed list of 1000 ImageNet categories: the
+model cannot say "I don't recognize this," so anything outside that vocabulary
+gets forced into the closest match, sometimes with high confidence. It also
+sees the image at 224×224 pixels and has no notion of location — a small
+object in a corner counts the same as background, and two dogs count the same
+as one.
