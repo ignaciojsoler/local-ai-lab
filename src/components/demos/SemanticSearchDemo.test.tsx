@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import SemanticSearchDemo from "./SemanticSearchDemo";
@@ -85,9 +85,24 @@ describe("SemanticSearchDemo", () => {
     const state = mockModel();
     render(<SemanticSearchDemo model="Xenova/test-model" sizeLabel="~24 MB" />);
 
+    // A ready model answers its own default question on mount, so the bar is
+    // the count after that: emptying the query must add nothing to it.
+    const runsAfterMount = (state.run as ReturnType<typeof vi.fn>).mock.calls.length;
     await userEvent.clear(screen.getByLabelText(/Query/));
 
     expect(screen.getByRole("button", { name: /Search/ })).toBeDisabled();
-    expect(state.run).not.toHaveBeenCalled();
+    expect(state.run).toHaveBeenCalledTimes(runsAfterMount);
+  });
+
+  it("answers its default question on its own when the weights are ready", async () => {
+    const state = mockModel();
+    render(<SemanticSearchDemo model="Xenova/test-model" sizeLabel="~24 MB" />);
+
+    await waitFor(() => expect(state.run).toHaveBeenCalledOnce());
+    expect(state.run).toHaveBeenCalledWith(
+      [expect.arrayContaining(["A pet taking a nap at home", "The cat is sleeping on the sofa."])],
+      { pooling: "mean", normalize: true },
+    );
+    expect(await screen.findAllByRole("listitem")).toHaveLength(5);
   });
 });

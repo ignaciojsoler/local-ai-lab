@@ -3,6 +3,7 @@ import { DemoShell } from "../demo-kit/DemoShell";
 import { ConfidenceBar } from "../demo-kit/ConfidenceBar";
 import { useModel } from "../demo-kit/useModel";
 import { PendingResult } from "../demo-kit/PendingResult";
+import { useAutoRun } from "../demo-kit/useAutoRun";
 import { toOverlayRect, type DetectionBox } from "../../lib/boxes";
 
 type Detection = { label: string; score: number; box: DetectionBox };
@@ -68,6 +69,10 @@ export default function ObjectDetectionDemo({
   }
 
   const ranked = detections ? [...detections].sort((a, b) => b.score - a.score) : null;
+
+  // Weights already on the device mean there is nothing to consent to, so
+  // the page answers its own default question instead of waiting.
+  useAutoRun(modelState.status, () => void detect(SAMPLES[0]));
 
   return (
     <DemoShell model={modelState} sizeLabel={sizeLabel}>
