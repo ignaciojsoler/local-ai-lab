@@ -38,14 +38,24 @@ describe("SentimentDemo", () => {
     expect(screen.getByText("0.98")).toBeInTheDocument();
   });
 
-  it("fills the textarea when a sample review is picked", async () => {
+  it("names each sample after what it demonstrates", async () => {
     mockModel();
     render(<SentimentDemo model="Xenova/test-model" sizeLabel="~67 MB" />);
 
-    const sample = screen.getAllByRole("button", { name: /^sample_/ })[0];
-    await userEvent.click(sample);
+    // The chip says what the review is, not where it sits in the list.
+    expect(screen.getByRole("button", { name: "glowing" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "mixed" })).toBeInTheDocument();
+  });
 
-    expect((screen.getByRole("textbox") as HTMLTextAreaElement).value).not.toBe("");
+  it("fills the textarea with the sample that was picked", async () => {
+    mockModel();
+    render(<SentimentDemo model="Xenova/test-model" sizeLabel="~67 MB" />);
+
+    await userEvent.click(screen.getByRole("button", { name: "fly_in_soup" }));
+
+    expect((screen.getByRole("textbox") as HTMLTextAreaElement).value).toMatch(
+      /fly in my soup/,
+    );
   });
 
   it("disables the analyze button on empty input", async () => {

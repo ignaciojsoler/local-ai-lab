@@ -1,6 +1,6 @@
 ---
 title: "Review sentiment analysis"
-summary: "Classify a product review as positive or negative, without sending a single character to a server."
+summary: "Classify a restaurant review as positive or negative, without sending a single character to a server."
 task: "text-classification"
 model: "Xenova/distilbert-base-uncased-finetuned-sst-2-english"
 sizeLabel: "~68 MB"
@@ -14,7 +14,7 @@ classifier = pipeline(
     "text-classification",
     model="distilbert-base-uncased-finetuned-sst-2-english",
 )
-result = classifier("This product exceeded my expectations!")
+result = classifier("Best carbonara I've had outside Rome.")
 print(result)
 # [{'label': 'POSITIVE', 'score': 0.9998}]`;
 
@@ -24,7 +24,7 @@ const classifier = await pipeline(
   "text-classification",
   "Xenova/distilbert-base-uncased-finetuned-sst-2-english",
 );
-const result = await classifier("This product exceeded my expectations!");
+const result = await classifier("Best carbonara I've had outside Rome.");
 console.log(result);
 // [{ label: "POSITIVE", score: 0.9998 }]`;
 
@@ -36,7 +36,7 @@ The same pipeline can be called from either Python or JavaScript.
 
 ## What this does
 
-Paste a product review and this page classifies it as **positive** or
+Paste a restaurant review and this page classifies it as **positive** or
 **negative**. The model download and every inference run happen inside your
 browser tab. No text you type is ever sent to a server, and the demo keeps
 working even if you go offline once the model has loaded.
