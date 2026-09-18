@@ -67,8 +67,14 @@ export async function clearModelCache(model: string): Promise<number> {
   }
 }
 
+/**
+ * Decimal MB, deliberately: this figure is compared against the download size
+ * quoted on the model's Hugging Face page, and that page counts 10^6 bytes to
+ * the megabyte. Dividing by 1024 here would print MiB under an "MB" label and
+ * undercount every model by about 5% against the number it is shown beside.
+ */
 export function formatBytes(bytes: number): string {
-  const mb = bytes / 1024 / 1024;
-  if (mb >= 1024) return `${(mb / 1024).toFixed(1)} GB`;
+  const mb = bytes / 1e6;
+  if (mb >= 1000) return `${(mb / 1000).toFixed(1)} GB`;
   return `${Math.round(mb)} MB`;
 }

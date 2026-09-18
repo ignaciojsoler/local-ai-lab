@@ -3,7 +3,7 @@ title: "Review sentiment analysis"
 summary: "Classify a product review as positive or negative, without sending a single character to a server."
 task: "text-classification"
 model: "Xenova/distilbert-base-uncased-finetuned-sst-2-english"
-sizeLabel: "~67 MB"
+sizeLabel: "~68 MB"
 category: "Language"
 order: 1
 ---
@@ -49,7 +49,8 @@ a distilled version of BERT fine-tuned on the Stanford Sentiment Treebank
 being about 40% smaller and 60% faster, which makes it practical to download
 and run directly in a browser tab. The build used here is the
 [`Xenova/distilbert-base-uncased-finetuned-sst-2-english`](https://huggingface.co/Xenova/distilbert-base-uncased-finetuned-sst-2-english)
-ONNX export, quantized to around 67 MB, prepared for the transformers.js
+ONNX export, whose weights file is around 67 MB — the button quotes ~68 MB
+because the tokenizer travels with it — prepared for the transformers.js
 runtime.
 
 ## How it works

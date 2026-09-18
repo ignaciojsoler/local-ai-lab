@@ -108,9 +108,9 @@ describe("modelStatusLabel", () => {
 describe("ClearModelButton", () => {
   it("confirms in place before clearing", async () => {
     const onClear = vi.fn();
-    render(<ClearModelButton cacheSize={68_157_440} onClear={onClear} />);
+    render(<ClearModelButton cacheSize={68_290_000} onClear={onClear} />);
 
-    await userEvent.click(screen.getByRole("button", { name: /Clear model \(65 MB\)/ }));
+    await userEvent.click(screen.getByRole("button", { name: /Clear model \(68 MB\)/ }));
     expect(onClear).not.toHaveBeenCalled();
 
     await userEvent.click(screen.getByRole("button", { name: /^Clear$/ }));
@@ -168,14 +168,14 @@ describe("DemoShell", () => {
   it("offers to clear the weights once they are cached", () => {
     render(
       <DemoShell
-        model={modelState({ status: "ready", cached: true, cacheSize: 68_157_440 })}
+        model={modelState({ status: "ready", cached: true, cacheSize: 68_290_000 })}
         sizeLabel="~65 MB"
       >
         <p>demo body</p>
       </DemoShell>,
     );
 
-    expect(screen.getByRole("button", { name: /Clear model \(65 MB\)/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Clear model \(68 MB\)/ })).toBeInTheDocument();
   });
 
   it("surfaces an error message", () => {
