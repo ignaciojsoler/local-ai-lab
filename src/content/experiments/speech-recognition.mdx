@@ -1,6 +1,6 @@
 ---
 title: "Speech recognition"
-summary: "Transcribe speech to text on your own machine, with the words appearing as the model decodes them."
+summary: "Transcribe English speech to text on your own machine, with the words appearing as the model decodes them."
 task: "automatic-speech-recognition"
 model: "Xenova/whisper-base"
 sizeLabel: "~80 MB"
@@ -35,9 +35,12 @@ The same pipeline can be called from either Python or JavaScript.
 
 ## What this does
 
-Play the clip and read the transcript. The audio is decoded in this tab, the
+Play a clip and read the transcript. The audio is decoded in this tab, the
 model runs in this tab, and the words appear **as they are decoded** rather
 than all at once at the end.
+
+**This page transcribes English only.** The model is multilingual on paper,
+and the section below explains why the page does not pretend it is.
 
 It is also the only experiment here that takes sound, which means it is the
 one where "nothing leaves your browser" stops being an abstract claim. Upload
@@ -64,23 +67,29 @@ one token at a time, which is why the transcript fills in as it works.
 3. The decoder is given the language and the task, then writes tokens until
    it emits an end-of-transcript marker.
 
-## Tell it the language
+## English only, and told so
 
-Whisper can detect the language itself, and on a short clip it detects
-badly. A German sentence — *"Es ist Aberglaube, dass schwarze Katzen Unglück
-bringen"* — came back from this exact model as:
+Whisper can detect the spoken language itself, and on a short clip it detects
+badly. Handed a German sentence with nothing declared, this exact model
+returned:
 
 > It is the color of the black card and the green card.
 
-Fluent English, confidently produced, with no relation to the audio. Told
-`language: "german"`, the same clip and the same model returned:
+Fluent English, confidently produced, with no relation to the audio. Told the
+clip was German, the same model returned every word of it correctly. So the
+page always declares the language rather than letting the model guess.
 
-> Es ist aber glaube, dass schwarze Katzen und Glück bringen.
+It declares English, and only English, because that is the only language this
+size of Whisper is good at. A language selector was built and then removed:
+`whisper-base` transcribes accented English well, and a four-second Spanish
+sentence — *"el gato está sobre la tabla"* — came back as *"Fíjate a tua
+estasurrala taula"*. Of the 680,000 hours Whisper was trained on, the large
+majority is English, and the smaller checkpoints spend what capacity they have
+on it.
 
-Every word correct, with two compound nouns split where a larger model would
-have joined them. That is why this page has a language selector rather than
-letting the model decide: the difference is not accuracy, it is nonsense
-versus near-perfect.
+Offering a choice of language would have been offering a setting with one good
+value. Upload English audio and this works; upload anything else and it will
+produce confident English nonsense.
 
 ## Limitations
 

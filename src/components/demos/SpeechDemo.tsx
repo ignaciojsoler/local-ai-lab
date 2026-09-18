@@ -8,6 +8,17 @@ import { decodeAudio } from "../../lib/audio";
 type Transcript = { text: string };
 
 /**
+ * English only, and told rather than detected.
+ *
+ * Whisper detects the language itself when it is not told, and on a short
+ * clip it detects badly. A selector was tried and removed: `whisper-base`
+ * transcribes accented English well and Spanish poorly — a four-second
+ * Spanish sentence came back as "Fíjate a tua estasurrala taula" — so
+ * offering the choice was offering a setting that only had one good value.
+ */
+const LANGUAGE = "english";
+
+/**
  * One clip for now, in English, verified against the model before shipping.
  *
  * Whisper-tiny needs clean speech. Two 1960s radio transmissions and a
@@ -15,8 +26,15 @@ type Transcript = { text: string };
  * the Apollo 11 "one small step" broadcast transcribed as "I'm going to stop
  * right now."
  */
+/**
+ * Three short clips, each verified against the model before shipping and
+ * each about ten seconds: long enough for Whisper to have context, short
+ * enough that the run finishes while you are still looking at it.
+ */
 const SAMPLES = [
-  { name: "kennedy", src: "/samples/speech-en.wav", language: "english" },
+  { name: "kennedy", src: "/samples/speech-en.wav" },
+  { name: "librivox", src: "/samples/speech-librivox.mp3" },
+  { name: "pooh", src: "/samples/speech-pooh.mp3" },
 ];
 
 export default function SpeechDemo({
@@ -29,14 +47,21 @@ export default function SpeechDemo({
   const [clip, setClip] = useState<string | null>(null);
   const [text, setText] = useState("");
   const [decodeError, setDecodeError] = useState<string | null>(null);
-  const [language, setLanguage] = useState("english");
+
+  // Only the newest run may write. A slower earlier one finishing later used
+  // to leave its text prepended to the new one: one transcript made of two.
+  const runIdRef = useRef(0);
 
   const objectUrlRef = useRef<string | null>(null);
 
   const modelState = useModel({ task: "automatic-speech-recognition", model });
   const running = modelState.status === "running";
 
-  async function transcribe(src: string, spokenIn = language) {
+  async function transcribe(src: string) {
+    const runId = runIdRef.current + 1;
+    runIdRef.current = runId;
+    const isCurrent = () => runIdRef.current === runId;
+
     setClip(src);
     setText("");
     setDecodeError(null);
@@ -48,7 +73,7 @@ export default function SpeechDemo({
       const response = await fetch(src);
       samples = await decodeAudio(await response.arrayBuffer());
     } catch {
-      setDecodeError("That audio could not be decoded by this browser.");
+      if (isCurrent()) setDecodeError("That audio could not be decoded by this browser.");
       return;
     }
 
@@ -56,10 +81,12 @@ export default function SpeechDemo({
       [samples],
       // Whisper guesses the language when it is not told, and on a short clip
       // it guesses badly: a German sentence came back as invented English.
-      { chunk_length_s: 30, language: spokenIn, task: "transcribe" },
-      (chunk) => setText((soFar) => soFar + chunk),
+      { chunk_length_s: 30, language: LANGUAGE, task: "transcribe" },
+      (chunk) => {
+        if (isCurrent()) setText((soFar) => soFar + chunk);
+      },
     );
-    if (output?.text) setText(output.text.trim());
+    if (output?.text && isCurrent()) setText(output.text.trim());
   }
 
   function handleUpload(event: React.ChangeEvent<HTMLInputElement>) {
@@ -71,7 +98,7 @@ export default function SpeechDemo({
     void transcribe(url);
   }
 
-  useAutoRun(modelState.status, () => void transcribe(SAMPLES[0].src, SAMPLES[0].language));
+  useAutoRun(modelState.status, () => void transcribe(SAMPLES[0].src));
 
   return (
     <DemoShell model={modelState} sizeLabel={sizeLabel}>
@@ -92,37 +119,13 @@ export default function SpeechDemo({
               <p className="eyebrow">Pick a clip or upload your own</p>
             )}
 
-            <label className="field-label">
-              <span className="eyebrow">Spoken language</span>
-              <span className="select-field">
-                <select
-                  value={language}
-                  disabled={running}
-                  onChange={(event) => {
-                    const chosen = event.target.value;
-                    setLanguage(chosen);
-                    // A correction, not a preference: whatever is loaded is
-                    // read again in the language just chosen.
-                    if (clip) void transcribe(clip, chosen);
-                  }}
-                  className="field"
-                >
-                  <option value="english">English</option>
-                  <option value="spanish">Spanish</option>
-                  <option value="german">German</option>
-                </select>
-              </span>
-            </label>
 
             <div className="flex flex-wrap gap-2">
               {SAMPLES.map((sample) => (
                 <button
                   key={sample.name}
                   type="button"
-                  onClick={() => {
-                    setLanguage(sample.language);
-                    void transcribe(sample.src, sample.language);
-                  }}
+                  onClick={() => void transcribe(sample.src)}
                   className={sample.src === clip ? "chip is-active" : "chip"}
                 >
                   {sample.name}
