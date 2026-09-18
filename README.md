@@ -37,14 +37,15 @@ bun run preview
 
 ## Architecture
 
-Each demo is a React "island" hydrated on the client (`client:visible`) that talks to a dedicated Web Worker. The worker owns the `@huggingface/transformers` pipeline: it loads the requested model on demand — only when the demo actually runs, not on page load — reports download progress back to the UI, and runs inference off the main thread so the page never freezes. The pipeline prefers the WebGPU execution provider and transparently falls back to WASM on devices or browsers that don't support it. Because model weights and multi-threaded WASM both rely on cross-origin isolation, `vercel.json` sets the `Cross-Origin-Opener-Policy` and `Cross-Origin-Embedder-Policy` headers on every route (see below).
+Each demo is a React "island" hydrated on the client (`client:load`) that talks to a dedicated Web Worker. The worker owns the `@huggingface/transformers` pipeline: it loads the requested model on demand — only when the demo actually runs, not on page load — reports download progress back to the UI, and runs inference off the main thread so the page never freezes. The pipeline prefers the WebGPU execution provider and transparently falls back to WASM on devices or browsers that don't support it. Because model weights and multi-threaded WASM both rely on cross-origin isolation, `vercel.json` sets the `Cross-Origin-Opener-Policy` and `Cross-Origin-Embedder-Policy` headers on every route (see below).
 
 ## Adding a new demo
 
-1. Add an MDX entry to `src/content/demos/`, with frontmatter (`title`, `summary`, `task`, `model`, `sizeLabel`, `order`) matching the existing entries, and import/render your demo component inside it.
-2. Build one island component under `src/components/demos/` (a `.tsx` file) that uses the shared demo-kit worker/UI helpers, following the pattern of `SentimentDemo.tsx`, `ImageClassificationDemo.tsx`, or `ZeroShotDemo.tsx`.
+1. Add an MDX entry to `src/content/demos/`, with frontmatter (`title`, `summary`, `task`, `model`, `sizeLabel`, `category`, `order`) matching the existing entries. `sizeLabel` must be the real download size — it is stated to the visitor before a single byte is fetched. `category` groups the entry in the left rail (e.g. `Language`, `Vision`).
+2. Build one island component under `src/components/demos/` (a `.tsx` file) that renders its inputs and outputs inside `DemoShell`, following the pattern of `SentimentDemo.tsx`, `ImageClassificationDemo.tsx`, or `ZeroShotDemo.tsx`. Call the model with `modelState.run([...positionalArgs], options)` — the array holds the pipeline's positional arguments in transformers.js order.
+3. Register the island in `src/components/DemoIsland.astro`, which mounts a component per `task`.
 
-The demo automatically shows up on `/demos` and on the home page, both of which list the `demos` content collection sorted by `order`.
+The demo then shows up on `/demos` and on the home page, both of which list the `demos` content collection sorted by `order`, and it inherits the download gate, the cache-aware restore, the backend badge and the "clear model" control from `demo-kit` without further work.
 
 ## Deployment
 

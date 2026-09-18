@@ -1,5 +1,29 @@
 # local-ai-lab Implementation Plan
 
+> **Status: delivered (2026-09-18).** This plan is a historical record of how
+> v1 was built and is not maintained against the current code. For the system
+> as it stands, read the spec:
+> `docs/superpowers/specs/2026-09-17-local-ai-lab-design.md`.
+>
+> Where the shipped code deliberately departs from this plan:
+>
+> - **No light mode and no theme toggle.** The plan's "colors are CSS custom
+>   properties so light mode can be added later" is now "…because that is how
+>   a design system is expressed." The light palette and the toggle were
+>   removed.
+> - **Cache-aware loading.** A demo probes Cache Storage on mount and brings
+>   an already-downloaded model up without a gate, instead of re-offering a
+>   download on every navigation. Weights can also be cleared, per model or
+>   all at once.
+> - **Positional worker arguments.** A run message carries `args`, not a
+>   single `input` plus options. Zero-shot classification needs its candidate
+>   labels in the second positional slot.
+> - **The cache is Cache Storage, not IndexedDB**, wherever this plan says
+>   otherwise.
+> - **Visual design.** The Astro Nano starting point was replaced by a
+>   three-column black lab-notebook layout; the page order now puts the code
+>   snippets directly under the demo.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build a static portfolio site where three Hugging Face models run entirely in the visitor's browser, each with a working demo, a written explanation, and Python/JavaScript integration snippets.
@@ -1538,7 +1562,7 @@ If `frontmatter` is not exposed in this Astro version's MDX scope, pass the lite
 
 Run: `bun run dev`
 
-Open `/demos/sentiment-analysis`, confirm that nothing downloads until the load button is pressed, that the progress bar advances, that a classification returns, and that the backend badge names a backend and a duration. Reload and confirm the second load is near-instant from the IndexedDB cache.
+Open `/demos/sentiment-analysis`, confirm that nothing downloads until the load button is pressed, that the progress bar advances, that a classification returns, and that the backend badge names a backend and a duration. Reload and confirm the second load is near-instant from the browser's Cache Storage.
 
 - [ ] **Step 8: Commit**
 
