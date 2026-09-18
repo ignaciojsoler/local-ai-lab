@@ -35,6 +35,16 @@ for (const { label, score, box } of results) {
 }
 // dog 0.99 { xmin: 0.16, ymin: 0.12, xmax: 0.83, ymax: 0.99 }`;
 
+<aside class="docs-note">
+  Sample photos from Wikimedia Commons, used under CC BY-SA:
+  [dog.jpg](https://commons.wikimedia.org/wiki/File:Golde33443.jpg) — Golden
+  Trvs Gol twister, CC BY-SA 3.0 ·
+  [espresso.jpg](https://commons.wikimedia.org/wiki/File:A_small_cup_of_coffee.JPG)
+  — Julius Schorzman, CC BY-SA 2.0 ·
+  [zebras.jpg](https://commons.wikimedia.org/wiki/File:Two_Zebras_standing_in_a_lush_Ugandan_savanna_in_Lake_Mburo_National_Park_28.jpg)
+  — Sandra Aceng, CC BY-SA 4.0
+</aside>
+
 ## Implementation
 
 The same pipeline can be called from either Python or JavaScript.
@@ -49,10 +59,14 @@ confident about gets a box drawn around it and a label, and the same photo can
 contain several.
 
 Compare it with [image classification](/demos/image-classification), which
-takes the same two photos. That model returns one ranked list for the whole
-image and has no way to say "there are three things here, and here is where".
-The espresso sample is the clearest case: the classifier gives you one label
-for the picture, while this one separates the cup, the spoon and the table.
+shares two of these photos. That model returns one ranked list for the whole
+image and has no way to say where anything is, or how many of it there are.
+
+The espresso sample separates the cup, the spoon and the table, where the
+classifier gives you a single label for the picture. The zebras make the
+sharper point: **two** boxes, both at 1.00. A classifier can tell you a photo
+is of zebras. Only this one can tell you there are two of them, and where each
+one stands.
 
 ## The model
 

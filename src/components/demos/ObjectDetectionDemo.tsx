@@ -8,11 +8,15 @@ import { toOverlayRect, type DetectionBox } from "../../lib/boxes";
 type Detection = { label: string; score: number; box: DetectionBox };
 
 /**
- * Two scenes, one object and three. The street photo the classifier uses is
- * left out here: it holds eleven overlapping bicycles, cars and people, and
- * the boxes pile into something you decode rather than read.
+ * One object, three objects, and two of the same kind.
+ *
+ * The street scene the classifier uses is replaced here by the zebras: it
+ * held eleven overlapping bicycles, cars and people, which is an impressive
+ * count and an unreadable picture. Two zebras make the same point — this
+ * model counts instances, where a classifier only names a category — with
+ * two boxes you can actually see.
  */
-const SAMPLES = ["/samples/dog.jpg", "/samples/espresso.jpg"];
+const SAMPLES = ["/samples/dog.jpg", "/samples/espresso.jpg", "/samples/zebras.jpg"];
 
 /** Below this the boxes are mostly noise, and the picture becomes unreadable. */
 const THRESHOLD = 0.5;
