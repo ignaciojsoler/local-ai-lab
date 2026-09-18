@@ -1,4 +1,4 @@
-# LOCAL-AI-LAB
+# Local AI Lab
 
 A collection of experiments exploring local AI inference in the browser using open-source models from Hugging Face.
 
