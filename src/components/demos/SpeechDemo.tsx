@@ -32,9 +32,9 @@ const LANGUAGE = "english";
  * enough that the run finishes while you are still looking at it.
  */
 const SAMPLES = [
-  { name: "kennedy", src: "/samples/speech-en.wav" },
-  { name: "librivox", src: "/samples/speech-librivox.mp3" },
-  { name: "pooh", src: "/samples/speech-pooh.mp3" },
+  { name: "kennedy speech", src: "/samples/speech-en.wav" },
+  { name: "examination testimony", src: "/samples/examination-testimony.wav" },
+  { name: "parasitic animals", src: "/samples/parasitic-animals.wav" },
 ];
 
 export default function SpeechDemo({
