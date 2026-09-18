@@ -34,6 +34,7 @@ export default function SpeechDemo({
   const objectUrlRef = useRef<string | null>(null);
 
   const modelState = useModel({ task: "automatic-speech-recognition", model });
+  const running = modelState.status === "running";
 
   async function transcribe(src: string, spokenIn = language) {
     setClip(src);
@@ -72,8 +73,6 @@ export default function SpeechDemo({
 
   useAutoRun(modelState.status, () => void transcribe(SAMPLES[0].src, SAMPLES[0].language));
 
-  const running = modelState.status === "running";
-
   return (
     <DemoShell model={modelState} sizeLabel={sizeLabel}>
       <div className="demo-columns">
@@ -98,7 +97,14 @@ export default function SpeechDemo({
               <span className="select-field">
                 <select
                   value={language}
-                  onChange={(event) => setLanguage(event.target.value)}
+                  disabled={running}
+                  onChange={(event) => {
+                    const chosen = event.target.value;
+                    setLanguage(chosen);
+                    // A correction, not a preference: whatever is loaded is
+                    // read again in the language just chosen.
+                    if (clip) void transcribe(clip, chosen);
+                  }}
                   className="field"
                 >
                   <option value="english">English</option>

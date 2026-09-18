@@ -76,6 +76,33 @@ describe("SpeechDemo", () => {
     expect(screen.getByTestId("transcript")).not.toHaveTextContent("Americans");
   });
 
+  it("transcribes again when the spoken language is corrected", async () => {
+    // Picking a language is a discrete choice, like picking a sample: there
+    // is nothing to finish typing, so waiting for a second click would leave
+    // the panel showing a transcript the visitor has already disowned.
+    const state = mockModel();
+    render(<SpeechDemo model="Xenova/test-model" sizeLabel="~80 MB" />);
+    await waitFor(() => expect(state.run).toHaveBeenCalledOnce());
+
+    await userEvent.selectOptions(screen.getByLabelText(/Spoken language/), "spanish");
+
+    await waitFor(() => expect(state.run).toHaveBeenCalledTimes(2));
+    expect(state.run).toHaveBeenLastCalledWith(
+      [expect.any(Float32Array)],
+      expect.objectContaining({ language: "spanish" }),
+      expect.any(Function),
+    );
+  });
+
+  it("does not run on a language change before any clip is loaded", async () => {
+    const state = mockModel({ status: "idle" });
+    render(<SpeechDemo model="Xenova/test-model" sizeLabel="~80 MB" />);
+
+    await userEvent.selectOptions(screen.getByLabelText(/Spoken language/), "spanish");
+
+    expect(state.run).not.toHaveBeenCalled();
+  });
+
   it("shows a meter until the first words arrive", async () => {
     // The encoder runs before a single token exists. Without this the panel
     // sits on a blinking caret for seconds and looks stalled.
