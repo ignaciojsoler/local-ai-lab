@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { DemoShell } from "../demo-kit/DemoShell";
 import { useModel } from "../demo-kit/useModel";
 import { useAutoRun } from "../demo-kit/useAutoRun";
+import { PendingResult } from "../demo-kit/PendingResult";
 import { decodeAudio } from "../../lib/audio";
 
 type Transcript = { text: string };
@@ -94,15 +95,17 @@ export default function SpeechDemo({
 
             <label className="field-label">
               <span className="eyebrow">Spoken language</span>
-              <select
-                value={language}
-                onChange={(event) => setLanguage(event.target.value)}
-                className="field"
-              >
-                <option value="english">English</option>
-                <option value="spanish">Spanish</option>
-                <option value="german">German</option>
-              </select>
+              <span className="select-field">
+                <select
+                  value={language}
+                  onChange={(event) => setLanguage(event.target.value)}
+                  className="field"
+                >
+                  <option value="english">English</option>
+                  <option value="spanish">Spanish</option>
+                  <option value="german">German</option>
+                </select>
+              </span>
             </label>
 
             <div className="flex flex-wrap gap-2">
@@ -137,9 +140,15 @@ export default function SpeechDemo({
             </span>
           </div>
 
+          {/* The encoder runs before the first token exists. Until then this is
+              a meter rather than a blinking caret on an empty line. */}
+          {running && !text && (
+            <PendingResult running label="Decoding the audio" />
+          )}
+
           <p
             data-testid="transcript"
-            className={running ? "transcription is-streaming" : "transcription"}
+            className={running && text ? "transcription is-streaming" : "transcription"}
           >
             {text}
           </p>

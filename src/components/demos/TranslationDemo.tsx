@@ -2,6 +2,7 @@ import { useState } from "react";
 import { DemoShell } from "../demo-kit/DemoShell";
 import { useModel } from "../demo-kit/useModel";
 import { useAutoRun } from "../demo-kit/useAutoRun";
+import { PendingResult } from "../demo-kit/PendingResult";
 
 type Translation = { translation_text: string };
 
@@ -108,9 +109,15 @@ export default function TranslationDemo({
             </span>
           </div>
 
+          {/* The encoder runs before the first token exists. Until then this is
+              a meter rather than a blinking caret on an empty line. */}
+          {running && !translation && (
+            <PendingResult running label="Reading the sentence" />
+          )}
+
           <p
             data-testid="translation"
-            className={running ? "transcription is-streaming" : "transcription"}
+            className={running && translation ? "transcription is-streaming" : "transcription"}
             lang="es"
           >
             {translation}

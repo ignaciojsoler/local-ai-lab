@@ -598,6 +598,37 @@ article.docs-article .demo-shell-title {
   color: var(--color-faint);
 }
 
+/* The native select arrow is drawn hard against the right edge whatever the
+   padding says, so it is replaced by one this stylesheet controls — and one
+   that takes its colour from a token like everything else. */
+.select-field {
+  position: relative;
+  display: block;
+}
+
+.select-field select.field {
+  appearance: none;
+  padding-right: 2.25rem;
+}
+
+.select-field::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0.9rem;
+  width: 0.4rem;
+  height: 0.4rem;
+  margin-top: -0.3rem;
+  border-right: 1px solid var(--color-muted);
+  border-bottom: 1px solid var(--color-muted);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+.select-field:hover::after {
+  border-color: var(--color-text-heading);
+}
+
 .field-label {
   display: flex;
   flex-direction: column;

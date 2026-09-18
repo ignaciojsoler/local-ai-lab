@@ -2,15 +2,15 @@
 title: "Speech recognition"
 summary: "Transcribe speech to text on your own machine, with the words appearing as the model decodes them."
 task: "automatic-speech-recognition"
-model: "Xenova/whisper-tiny"
-sizeLabel: "~45 MB"
+model: "Xenova/whisper-base"
+sizeLabel: "~80 MB"
 category: "Audio"
 order: 7
 ---
 
 export const python = String.raw`from transformers import pipeline
 
-asr = pipeline("automatic-speech-recognition", model="openai/whisper-tiny")
+asr = pipeline("automatic-speech-recognition", model="openai/whisper-base")
 
 # Telling it the language matters. Left to guess on a short clip it often
 # guesses wrong, and then transcribes confidently into the wrong one.
@@ -20,7 +20,7 @@ export const javascript = String.raw`import { pipeline } from "@huggingface/tran
 
 const asr = await pipeline(
   "automatic-speech-recognition",
-  "Xenova/whisper-tiny",
+  "Xenova/whisper-base",
 );
 
 // samples: mono Float32Array at 16 kHz, decoded in the page with an
@@ -47,9 +47,8 @@ transcript is to send your voice to somebody else's computer.
 ## The model
 
 Whisper is OpenAI's speech recognition model, trained on 680,000 hours of
-audio collected from the web in 96 languages. `whisper-tiny` is the smallest
-of the family: 39 million parameters, 45 MB quantized — small enough that the
-download is smaller than most of the image models on this site.
+audio collected from the web in 96 languages. `whisper-base` is the second
+smallest of the family: 74 million parameters, 80 MB quantized.
 
 It is an encoder-decoder, like the [translation](/experiments/translation)
 model. The encoder reads a spectrogram of the audio; the decoder writes text
@@ -96,7 +95,23 @@ emit something, so a clip with nothing in it tends to come back with a
 plausible sentence. This is the same failure the generative models on this
 site all share: there is no "I don't know" token.
 
-**Tiny is tiny.** It loses proper nouns, invents punctuation, and drops the
-ends of words. `whisper-base` is roughly twice the download and noticeably
-better; this page runs the smaller one because the download is the price of
-admission.
+**Model size shows up as accent robustness.** This page started on
+`whisper-tiny`, 45 MB, which transcribes the Kennedy clip flawlessly. Handed a
+recording of an ordinary sentence read by a non-native English speaker, it
+returned:
+
+> These are all the other ones inside your browser. You will never have to be
+> in the computer.
+
+The sentence read aloud was "This model runs inside your browser. The audio
+never left your computer." The same recording on `whisper-base` came back
+correct. That is the entire difference between the two models here: not the
+famous clip, which both get right, but an ordinary voice, which only the
+larger one does.
+
+**Be suspicious of the Kennedy clip.** It is the demo file shipped with
+Whisper itself, and it flatters the model twice over: a native speaker
+recorded in a studio, reading one of the most quoted sentences in English.
+Whisper's decoder is a language model, so a phrase it has effectively
+memorised needs very little acoustic evidence to produce. Judge the model on
+your own voice instead — the upload button is there for that.

@@ -76,6 +76,19 @@ describe("SpeechDemo", () => {
     expect(screen.getByTestId("transcript")).not.toHaveTextContent("Americans");
   });
 
+  it("shows a meter until the first words arrive", async () => {
+    // The encoder runs before a single token exists. Without this the panel
+    // sits on a blinking caret for seconds and looks stalled.
+    mockModel({
+      status: "running",
+      run: vi.fn(() => new Promise(() => {})) as unknown as UseModelState["run"],
+    });
+    render(<SpeechDemo model="Xenova/test-model" sizeLabel="~80 MB" />);
+
+    expect(await screen.findByRole("progressbar", { name: /Running/ })).toBeInTheDocument();
+    expect(screen.getByText(/Decoding the audio/)).toBeInTheDocument();
+  });
+
   it("reports a clip it could not decode instead of transcribing silence", async () => {
     mockModel();
     vi.spyOn(audio, "decodeAudio").mockRejectedValue(new Error("Unable to decode audio data"));
