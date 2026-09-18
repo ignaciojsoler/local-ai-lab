@@ -371,11 +371,18 @@ button:disabled {
 article.docs-article ol.breadcrumb,
 .breadcrumb {
   display: flex;
+  align-items: baseline;
   list-style: none;
   padding-left: 0;
   flex-wrap: wrap;
   gap: 0.4rem;
   margin: 0 0 1.1rem;
+}
+
+article.docs-article .breadcrumb li,
+.breadcrumb li {
+  max-width: none;
+  margin-top: 0;
 }
 
 .breadcrumb li + li::before {
