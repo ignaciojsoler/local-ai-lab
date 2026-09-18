@@ -12,7 +12,13 @@ export type RunResult<T> = { output: T; durationMs: number };
 
 export interface InferenceClient {
   load(onProgress?: (update: ProgressUpdate) => void): Promise<void>;
-  run<T>(input: unknown, options?: Record<string, unknown>): Promise<RunResult<T>>;
+  /**
+   * `args` are the pipeline's positional arguments, in transformers.js order:
+   * `[text]` for a classifier, `[text, candidateLabels]` for zero-shot. The
+   * options object is always the pipeline's last parameter, never a carrier
+   * for positional data.
+   */
+  run<T>(args: unknown[], options?: Record<string, unknown>): Promise<RunResult<T>>;
   dispose(): void;
 }
 
@@ -99,7 +105,7 @@ export function createInferenceClient(config: Config): InferenceClient {
       });
     },
 
-    run<T>(input: unknown, options?: Record<string, unknown>) {
+    run<T>(args: unknown[], options?: Record<string, unknown>) {
       const id = nextId++;
       return new Promise<RunResult<T>>((resolve, reject) => {
         pending.set(id, {
@@ -107,7 +113,7 @@ export function createInferenceClient(config: Config): InferenceClient {
           resolve: resolve as (value: RunResult<never>) => void,
           reject,
         });
-        worker.postMessage({ type: "run", id, input, options });
+        worker.postMessage({ type: "run", id, args, options });
       });
     },
 
