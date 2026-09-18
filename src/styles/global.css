@@ -672,6 +672,38 @@ article.docs-article .demo-shell-title {
   padding: 0.35rem 0;
 }
 
+/* When the label is a whole sentence it gets its own line, with the bar and
+   the figure beneath it. The narrow label column only works for one word. */
+article.docs-article ul.score-list,
+.score-list {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.score-list .score-row {
+  grid-template-columns: minmax(0, 1fr) 2.75rem;
+  grid-template-areas:
+    "label label"
+    "meter value";
+  gap: 0.4rem 0.85rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--color-rule);
+}
+
+.score-list .score-label {
+  grid-area: label;
+  line-height: 1.5;
+}
+
+.score-list .meter {
+  grid-area: meter;
+}
+
+.score-list .score-value {
+  grid-area: value;
+}
+
 .score-label {
   font-family: theme("fontFamily.mono");
   font-size: 0.8125rem;
@@ -882,6 +914,11 @@ article.docs-article :not(pre) > code {
   padding: 0;
   list-style: none;
   border-top: 1px solid var(--color-border);
+}
+
+article.docs-article .score-list li {
+  max-width: none;
+  margin-top: 0;
 }
 
 article.docs-article .demo-index li,

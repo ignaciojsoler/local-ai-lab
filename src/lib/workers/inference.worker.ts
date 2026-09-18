@@ -1,5 +1,6 @@
 /// <reference lib="webworker" />
 import { pipeline, env, type PipelineType } from "@huggingface/transformers";
+import { toStructuredCloneable } from "../worker-output";
 
 // Weights come from the Hugging Face CDN; nothing is served from our origin.
 env.allowLocalModels = false;
@@ -56,7 +57,8 @@ self.addEventListener("message", async (event: MessageEvent<IncomingMessage>) =>
       self.postMessage({
         type: "result",
         id: message.id,
-        output,
+        // Embedding pipelines return a Tensor, which structured clone rejects.
+        output: toStructuredCloneable(output),
         durationMs: Math.round(performance.now() - startedAt),
       });
     }

@@ -32,8 +32,25 @@ These three were chosen because they exercise three different interaction
 shapes: typing text, uploading a file, and supplying custom labels. This
 forces the shared demo components to generalize from the start.
 
+### Beyond v1
+
+**Semantic search** — `Xenova/all-MiniLM-L6-v2`, ~24 MB, shipped. The first
+experiment whose output is a *ranking of a corpus* rather than a score for one
+input, and the smallest model on the site by a factor of three.
+
+Planned next, in order: **object detection** (`Xenova/detr-resnet-50`, ~43 MB)
+for an output that is drawn onto a canvas rather than listed, and **handwriting
+OCR** (`Xenova/trocr-small-handwritten`, ~68 MB) for generated text produced
+token by token. Six is the intended total: past that, an addition is another
+model rather than another claim.
+
+Speech recognition was considered and dropped. `whisper-tiny.en` is
+English-only and would mistranscribe the author's own spoken Spanish in front
+of the audience this site is for; it also needs a microphone permission prompt
+on a site whose argument is that nothing leaves the tab.
+
 Adding a fourth use case should mean adding one content entry and one island
-component. That held for the three shipped here.
+component. That held for the three shipped in v1.
 
 **[amended]** It will not hold for every direction. Audio input (decoding to
 16 kHz mono before inference), streamed token-by-token output, and drawing
@@ -187,6 +204,14 @@ positionally — zero-shot classification receives its candidate labels as the
 second argument — and an earlier protocol that could only send
 `task(input, options)` had no way to express that. Passing the labels inside
 the options object silently produced a confident, meaningless ranking.
+
+**Results are reduced before they are posted.** The embedding pipelines return
+a transformers.js `Tensor`, which carries private fields and is rejected
+outright by structured clone. The worker hands over `{ type, data, dims }`
+instead; everything else passes through untouched.
+
+This was the first shared-code change a new use case forced, exactly as this
+document warned it would be — and the cheapest possible version of it.
 
 ## Visual design
 
