@@ -102,7 +102,7 @@ describe("useModel", () => {
 
     let output: unknown;
     act(() => {
-      void result.current.run("great movie").then((value) => {
+      void result.current.run(["great movie"]).then((value) => {
         output = value;
       });
     });
