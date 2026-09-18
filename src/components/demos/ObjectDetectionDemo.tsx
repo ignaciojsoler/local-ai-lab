@@ -11,11 +11,10 @@ type Detection = { label: string; score: number; box: DetectionBox };
 /**
  * One object, three objects, and two of the same kind.
  *
- * The street scene the classifier uses is replaced here by the zebras: it
- * held eleven overlapping bicycles, cars and people, which is an impressive
- * count and an unreadable picture. Two zebras make the same point — this
- * model counts instances, where a classifier only names a category — with
- * two boxes you can actually see.
+ * The zebras replaced a street scene that held eleven overlapping bicycles,
+ * cars and people: an impressive count and an unreadable picture. Two zebras
+ * make the same point — this model counts instances, where a classifier only
+ * names a category — with two boxes you can actually see.
  */
 const SAMPLES = ["/samples/dog.jpg", "/samples/espresso.jpg", "/samples/zebras.jpg"];
 
