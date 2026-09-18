@@ -755,17 +755,7 @@ article.docs-article ul.score-list,
   grid-area: meter;
 }
 
-.score-list /* Higher specificity than the rank ramp above, so a verdict's polarity wins
-   over its position in a list. */
-.score-row[data-tone="positive"] .meter-fill {
-  background: var(--color-signal);
-}
-
-.score-row[data-tone="negative"] .meter-fill {
-  background: var(--color-danger);
-}
-
-.score-value {
+.score-list .score-value {
   grid-area: value;
 }
 
@@ -797,6 +787,16 @@ article.docs-article ul.score-list,
 .score-row[data-rank="6"] .meter-fill,
 .score-row[data-rank="7"] .meter-fill {
   background: var(--score-5);
+}
+
+/* Declared after the rank ramp so a verdict's polarity wins over its position
+   in a list, whatever rank it was given. */
+.score-row[data-tone="positive"] .meter-fill {
+  background: var(--color-signal);
+}
+
+.score-row[data-tone="negative"] .meter-fill {
+  background: var(--color-danger);
 }
 
 .score-value {
