@@ -49,8 +49,15 @@ produced a token at a time and streamed out of the worker as it is written.
 It is also the only demo a reader can check without trusting the page: both
 sides of the translation are on screen.
 
-Six is the intended total: past that, an addition is another model rather than
-another claim.
+**Speech recognition** — `Xenova/whisper-tiny`, ~45 MB, shipped. The third
+input modality, and the one that makes "nothing leaves your browser" concrete:
+the usual way to get a transcript is to send your voice to someone else's
+computer.
+
+It also reverses an earlier judgement recorded here. Whisper was dropped from
+the plan for being English-only; the multilingual build turned out to be 45 MB
+against the English one's 44, so that objection was never measured and was
+simply wrong.
 
 Handwriting OCR (`trocr-small-handwritten`) was built for this slot and
 abandoned after testing. The model reads one tightly cropped line and nothing
@@ -60,10 +67,11 @@ squashes every input to 384x384, so anything smaller than the frame becomes
 unreadable. A demo that only works on an input the visitor is unlikely to
 produce is a demo that looks broken.
 
-Speech recognition was considered and dropped. `whisper-tiny.en` is
-English-only and would mistranscribe the author's own spoken Spanish in front
-of the audience this site is for; it also needs a microphone permission prompt
-on a site whose argument is that nothing leaves the tab.
+Speech recognition was dropped from the plan and then reinstated. The stated
+reason for dropping it — that `whisper-tiny.en` is English-only — dissolved on
+contact with the file listing: the multilingual `whisper-tiny` is 45 MB
+against 44. The microphone objection dissolved too, since a shipped clip and
+an upload cover the demo without asking for a permission.
 
 Adding a fourth use case should mean adding one content entry and one island
 component. That held for the three shipped in v1.

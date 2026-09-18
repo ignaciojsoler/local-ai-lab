@@ -5,6 +5,7 @@ import ZeroShotDemo from "@components/demos/ZeroShotDemo";
 import SemanticSearchDemo from "@components/demos/SemanticSearchDemo";
 import ObjectDetectionDemo from "@components/demos/ObjectDetectionDemo";
 import TranslationDemo from "@components/demos/TranslationDemo";
+import SpeechDemo from "@components/demos/SpeechDemo";
 
 type Props = {
   task: string;
@@ -33,5 +34,8 @@ const { task, model, sizeLabel } = Astro.props;
   )}
   {task === "translation" && (
     <TranslationDemo client:load model={model} sizeLabel={sizeLabel} />
+  )}
+  {task === "automatic-speech-recognition" && (
+    <SpeechDemo client:load model={model} sizeLabel={sizeLabel} />
   )}
 </section>
