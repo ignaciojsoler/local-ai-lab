@@ -1,5 +1,9 @@
 export type Site = {
   NAME: string;
+  /** Short monospace mark used in the top bar. */
+  WORDMARK: string;
+  /** Repository this site is built from. */
+  SOURCE: string;
   EMAIL: string;
 };
 

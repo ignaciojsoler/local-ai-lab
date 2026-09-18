@@ -10,25 +10,68 @@ export async function getStaticPaths() {
 }
 
 const { entry } = Astro.props;
-const { Content, headings } = await render(entry);
+const { Content } = await render(entry);
+const { title, summary, task, model, sizeLabel, category } = entry.data;
+
+/** Every figure here is read off the model we actually ship, never invented. */
+const specs = [
+  { label: "Reference", value: model.split("/").pop() ?? model },
+  { label: "Footprint", value: sizeLabel.replace(/^~/, "") },
+  { label: "Pipeline", value: task },
+  { label: "Runtime", value: "WebGPU / WASM" },
+];
 ---
 
-<PageLayout title={entry.data.title} description={entry.data.summary} headings={headings}>
+<PageLayout title={title} description={summary}>
   <article class="docs-article">
-    <h1>{entry.data.title}</h1>
-    <p class="lead">{entry.data.summary}</p>
-    <p class="model-meta">
-      <span>{entry.data.task}</span>
-      <span>{entry.data.model}</span>
-      <span>{entry.data.sizeLabel}</span>
-    </p>
+    <ol class="breadcrumb eyebrow">
+      <li><a href="/demos">Experiments</a></li>
+      <li>{category}</li>
+      <li>{entry.id}</li>
+    </ol>
 
-    <DemoIsland
-      task={entry.data.task}
-      model={entry.data.model}
-      sizeLabel={entry.data.sizeLabel}
-    />
+    <h1>{title}</h1>
+    <p class="lead">{summary}</p>
+
+    <div class="spec-strip">
+      {specs.map((spec) => (
+        <div>
+          <span class="eyebrow">{spec.label}</span>
+          <span class="spec-value">{spec.value}</span>
+        </div>
+      ))}
+    </div>
+
+    <DemoIsland task={task} model={model} sizeLabel={sizeLabel} />
 
     <Content components={{ CodeTabs }} />
   </article>
+
+  <Fragment slot="meta">
+    <p class="eyebrow">Metadata</p>
+    <div class="lab-meta-row">
+      <span>Model</span>
+      <span>{model}</span>
+    </div>
+    <div class="lab-meta-row">
+      <span>Task</span>
+      <span>{task}</span>
+    </div>
+    <div class="lab-meta-row">
+      <span>Weights</span>
+      <span>{sizeLabel}</span>
+    </div>
+    <div class="lab-meta-rule"></div>
+    <p class="eyebrow">
+      Weights (local) <span class="signal-dot" aria-hidden="true"></span>
+    </p>
+    <a
+      class="eyebrow"
+      href={`https://huggingface.co/${model}`}
+      rel="noopener noreferrer"
+      target="_blank"
+    >
+      View on Hugging Face →
+    </a>
+  </Fragment>
 </PageLayout>

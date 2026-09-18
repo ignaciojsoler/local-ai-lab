@@ -3,36 +3,33 @@ import Head from "@components/Head.astro";
 import DocsSidebar from "@components/DocsSidebar.astro";
 import { SITE } from "@consts";
 import { getCollection } from "astro:content";
-import type { MarkdownHeading } from "astro";
 
 type Props = {
   title: string;
   description: string;
-  headings?: MarkdownHeading[];
 };
 
-const { title, description, headings = [] } = Astro.props;
+const { title, description } = Astro.props;
 const demos = (await getCollection("demos")).sort((a, b) => a.data.order - b.data.order);
 const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/";
+const onDemos = currentPath.startsWith("/demos");
 ---
 
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <Head title={`${title} | ${SITE.NAME}`} description={description} />
   </head>
   <body>
     <a class="skip-link" href="#content">Skip to content</a>
-    <div class="docs-shell">
-      <div id="docs-backdrop" class="docs-backdrop"></div>
-      <DocsSidebar demos={demos} currentPath={currentPath} headings={headings} />
-      <div class="docs-main">
-        <header class="docs-topbar">
+    <div class="lab-shell">
+      <header class="lab-topbar">
+        <div class="lab-container">
           <button
             type="button"
-            id="sidebar-toggle"
-            class="icon-button sidebar-toggle"
-            aria-controls="docs-sidebar"
+            id="rail-toggle"
+            class="icon-button rail-toggle"
+            aria-controls="lab-rail"
             aria-expanded="false"
             aria-label="Open navigation"
           >
@@ -42,65 +39,57 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/";
               <line x1="4" y1="17" x2="20" y2="17"></line>
             </svg>
           </button>
-          <span class="docs-brand">{title}</span>
-          <div class="flex items-center">
-            <button id="light-theme-button" class="icon-button" aria-label="Light theme" type="button">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="5"></circle>
-                <line x1="12" y1="1" x2="12" y2="3"></line>
-                <line x1="12" y1="21" x2="12" y2="23"></line>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                <line x1="1" y1="12" x2="3" y2="12"></line>
-                <line x1="21" y1="12" x2="23" y2="12"></line>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-              </svg>
-            </button>
-            <button id="dark-theme-button" class="icon-button" aria-label="Dark theme" type="button">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-              </svg>
-            </button>
-            <button id="system-theme-button" class="icon-button" aria-label="System theme" type="button">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                <line x1="8" y1="21" x2="16" y2="21"></line>
-                <line x1="12" y1="17" x2="12" y2="21"></line>
-              </svg>
-            </button>
-          </div>
-        </header>
-        <main id="content" class="docs-content">
+          <a class="lab-wordmark" href="/">{SITE.WORDMARK}</a>
+          <nav class="lab-topnav" aria-label="Sections">
+            <a href="/" class={currentPath === "/" ? "is-active" : undefined}>Overview</a>
+            <a href="/demos" class={onDemos ? "is-active" : undefined}>Experiments</a>
+            <a href={SITE.SOURCE} rel="noopener noreferrer" target="_blank">Source</a>
+          </nav>
+        </div>
+      </header>
+
+      <div id="rail-backdrop" class="rail-backdrop"></div>
+
+      <div class="lab-body">
+        <DocsSidebar demos={demos} currentPath={currentPath} />
+        <main id="content">
           <slot />
         </main>
-        <footer class="docs-footer">
-          <div class="flex items-center justify-between gap-4">
-            <span>&copy; {new Date().getFullYear()} {SITE.NAME}</span>
-            <a href="#content" id="back-to-top">Back to top</a>
-          </div>
-        </footer>
+        <aside class="lab-meta" aria-label="Model metadata">
+          <slot name="meta" />
+        </aside>
       </div>
+
+      <footer class="lab-footer">
+        <span class="eyebrow">Field notes on local Hugging Face models</span>
+        <span class="eyebrow">
+          <a href={SITE.SOURCE} rel="noopener noreferrer" target="_blank">GitHub</a>
+          <span class="mx-2" aria-hidden="true">·</span>
+          <a href="#content" id="back-to-top">Back to top</a>
+        </span>
+      </footer>
     </div>
     <script>
-      const root = document.querySelector(".docs-shell");
-      const sidebar = document.getElementById("docs-sidebar");
-      const toggle = document.getElementById("sidebar-toggle");
-      const backdrop = document.getElementById("docs-backdrop");
+      const shell = document.querySelector(".lab-shell");
+      const toggle = document.getElementById("rail-toggle");
+      const backdrop = document.getElementById("rail-backdrop");
+      const rail = document.getElementById("lab-rail");
 
       function setOpen(open: boolean) {
-        root?.classList.toggle("sidebar-open", open);
-        sidebar?.classList.toggle("is-open", open);
+        shell?.classList.toggle("rail-open", open);
         toggle?.setAttribute("aria-expanded", String(open));
         toggle?.setAttribute("aria-label", open ? "Close navigation" : "Open navigation");
       }
 
       toggle?.addEventListener("click", () => {
-        setOpen(!root?.classList.contains("sidebar-open"));
+        setOpen(!shell?.classList.contains("rail-open"));
       });
       backdrop?.addEventListener("click", () => setOpen(false));
-      sidebar?.querySelectorAll("a").forEach((link) => {
+      rail?.querySelectorAll("a").forEach((link) => {
         link.addEventListener("click", () => setOpen(false));
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") setOpen(false);
       });
     </script>
   </body>

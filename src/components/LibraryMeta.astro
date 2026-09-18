@@ -1,0 +1,39 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { DeviceCache } from "@components/demo-kit/DeviceCache";
+import { SITE } from "@consts";
+
+type Props = {
+  demos: CollectionEntry<"demos">[];
+};
+
+const { demos } = Astro.props;
+
+/**
+ * The right rail on the index pages answers the question a visitor actually
+ * has before clicking anything: how much will this cost me to try? Every
+ * figure is read off the collection, so it stays true as demos are added.
+ */
+const categories = [...new Set(demos.map((entry) => entry.data.category))];
+---
+
+<p class="eyebrow">Library</p>
+<div class="lab-meta-row">
+  <span>Experiments</span>
+  <span>{demos.length} · {categories.join(", ")}</span>
+</div>
+<DeviceCache client:load models={demos.map((entry) => entry.data.model)} />
+<div class="lab-meta-row">
+  <span>Runtime</span>
+  <span>WebGPU, WASM fallback</span>
+</div>
+<div class="lab-meta-rule"></div>
+<p class="eyebrow">
+  Runs on-device <span class="signal-dot" aria-hidden="true"></span>
+</p>
+<p class="lab-meta-note">
+  Nothing is downloaded until you ask, and nothing you type leaves the tab.
+</p>
+<a class="eyebrow" href={SITE.SOURCE} rel="noopener noreferrer" target="_blank">
+  Source on GitHub →
+</a>
