@@ -1,7 +1,9 @@
 # local-ai-lab — Design
 
 Date: 2026-09-17
-Status: Approved
+Updated: 2026-09-18
+Status: v1 delivered. Amended to describe what shipped, not what was planned.
+Sections that changed after implementation are marked **[amended]**.
 
 ## Purpose
 
@@ -15,25 +17,40 @@ and explain the result clearly.
 
 ## Scope
 
-Version 1 ships three use cases:
+Version 1 shipped three use cases:
 
 1. Review sentiment analysis — `Xenova/distilbert-base-uncased-finetuned-sst-2-english`
 2. Image classification — `Xenova/vit-base-patch16-224`
 3. Zero-shot classification — `Xenova/nli-deberta-v3-xsmall`
 
-Model download sizes must be verified during implementation and surfaced in
-the UI before download. They are expected to be roughly 65–90 MB quantized.
+Model download sizes are verified against the real weights and surfaced in
+the UI before anything is fetched. They land at ~67 MB, ~88 MB and ~87 MB
+quantized. Any fourth use case must have its size verified the same way; the
+figure shown on the button is a promise about the visitor's bandwidth.
 
 These three were chosen because they exercise three different interaction
 shapes: typing text, uploading a file, and supplying custom labels. This
 forces the shared demo components to generalize from the start.
 
-Adding a fourth use case must mean adding one content entry and one island
-component. If it requires changing shared code, the abstraction has failed.
+Adding a fourth use case should mean adding one content entry and one island
+component. That held for the three shipped here.
 
-### Out of scope for v1
+**[amended]** It will not hold for every direction. Audio input (decoding to
+16 kHz mono before inference), streamed token-by-token output, and drawing
+onto a canvas instead of rendering bars are capabilities the kit genuinely
+does not have. Adding one of those means extending shared code on purpose —
+which is a decision to take before starting, not a failure to discover
+halfway through.
 
-- Light mode (colors are defined as CSS tokens so it can be added later)
+### Out of scope
+
+**[amended]** Light mode was dropped as a goal, not deferred. The site is
+designed as one black instrument panel; a second palette would be a second
+design to maintain for no one who asked. Colors remain CSS custom properties
+because that is how a design system is expressed, not because a light theme
+is coming.
+
+- Light mode, and any theme toggle
 - Search, comments, blog, RSS
 - Serving model weights from our own origin
 - Any server-side code
@@ -67,6 +84,8 @@ messages are written in English.
 
 ## Architecture
 
+**[amended]** — the shipped tree:
+
 ```
 src/
   content/demos/            # one .mdx per use case
@@ -78,16 +97,24 @@ src/
     ImageClassificationDemo.tsx
     ZeroShotDemo.tsx
   components/demo-kit/      # shared building blocks
-    DemoShell.tsx           # layout, status, error boundary
-    ModelLoader.tsx         # download progress, cache state
+    DemoShell.tsx           # the instrument panel: status, errors, framing
+    ModelLoader.tsx         # the download action, the meter, the status line
+    ClearModelButton.tsx    # hand one model's weights back
+    DeviceCache.tsx         # what this browser holds, across all models
     BackendBadge.tsx        # "WebGPU" | "WASM (CPU)" + timing
-    CodeTabs.astro          # Python | JavaScript
+    ConfidenceBar.tsx       # one scored label
+    CodeTabs.astro          # Python | JavaScript, highlighted at build time
   lib/
-    pipeline.ts             # transformers.js singleton + worker factory
-    workers/                # one worker per task type
+    inference-client.ts     # transport-agnostic worker client
+    backend.ts              # WebGPU detection with WASM fallback
+    model-cache.ts          # read and clear the weights on this device
+    workers/inference.worker.ts
 ```
 
-Each `.mdx` file declares its model id, task, and which island to mount in
+There is one worker for every task, not one per task type: the pipeline is a
+runtime argument, so a new use case needs no new worker.
+
+Each `.mdx` file declares its model id, task, size label and category in
 frontmatter. The body holds the description, the explanation, and the code
 snippets. A single page template renders all use cases from this collection;
 the three pages are not written by hand.
@@ -97,12 +124,17 @@ code interleaved, which is painful to author inside a data structure.
 
 ## Page structure
 
-Every use case page follows the same order:
+**[amended]** Every use case page follows the same order:
 
-1. Interactive demo
-2. Description of the use case and the model
-3. Explanation of how it works
-4. Code block with two tabs: `Python | JavaScript`
+1. Breadcrumb, title, and a spec strip of the model's own figures
+2. Interactive demo
+3. Code block with two tabs: `Python | JavaScript`
+4. Description of the use case and the model
+5. Explanation of how it works
+
+The snippets moved directly under the demo. A reader who has just watched the
+model run wants to know how to call it before they want the prose, and the
+code is the thing they came to copy.
 
 The code tabs are illustrative integration examples showing how to run that
 model in each language. They are not a dump of the page's real source — the
@@ -116,9 +148,23 @@ a CPU-only machine the first inference takes long enough to freeze the page,
 which on a portfolio site reads as a broken site.
 
 **On-demand loading.** No model is downloaded on page load. An explicit
-button states the size ("Load model (~65 MB)") before fetching anything.
-transformers.js caches weights in IndexedDB, so repeat visits are instant.
-Cache state is shown in the UI.
+button states the size ("Download model (~67 MB)") before fetching anything.
+
+**[amended] Cache-aware loading.** transformers.js keeps weights in **Cache
+Storage** (the bucket named `transformers-cache`), not IndexedDB, as the
+earlier draft of this document claimed. Every demo reads that cache on mount:
+
+- weights already present → the model is brought up on its own, with no gate.
+  Nothing crosses the network, so there is nothing left to consent to, and the
+  visitor is not asked to "download" something they already have.
+- weights absent → the download button, with the size stated.
+
+The consent rule is about bandwidth, not about ceremony. Applying it to a
+cached model was the bug, not the fix.
+
+**Reversible.** Anything a page put on the device can be taken back off it:
+per model from the demo panel, or all at once from the index pages, with the
+size measured off the cache rather than estimated.
 
 **Backend detection.** At startup the code checks whether WebGPU is available
 and can be initialized. If so, transformers.js is configured with
@@ -130,6 +176,34 @@ The chosen backend and the measured inference time are displayed in a badge
 next to each demo. This explains latency to visitors on slower backends, and
 it is portfolio content in its own right — it shows the author knows where the
 computation runs.
+
+## Worker protocol
+
+**[amended]** A run message carries `args`, the pipeline's positional
+arguments in transformers.js order, plus an optional trailing options object.
+
+This is not incidental. transformers.js takes several pipeline inputs
+positionally — zero-shot classification receives its candidate labels as the
+second argument — and an earlier protocol that could only send
+`task(input, options)` had no way to express that. Passing the labels inside
+the options object silently produced a confident, meaningless ranking.
+
+## Visual design
+
+**[amended]** The site reads as a lab notebook rather than a product page:
+hairline rules instead of boxes, a three-column shell (navigation, content,
+metadata), and a monospace voice reserved for every machine-written value —
+sizes, labels, scores, runtime status. Space Grotesk over JetBrains Mono, on
+black.
+
+The demo sits inside a double-ruled frame that reads as a piece of equipment.
+Before the weights arrive its inputs stay on screen, visible but inert inside
+a disabled fieldset, so a visitor can see what the instrument does before
+committing to the download.
+
+Probability bars take a single hue stepped by rank. They encode magnitude, so
+they are not a categorical palette; identity stays with the label beside the
+bar, and the figures wear text tokens rather than the series color.
 
 ## Per-demo notes
 

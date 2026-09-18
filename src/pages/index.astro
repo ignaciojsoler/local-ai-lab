@@ -19,7 +19,7 @@ const demos = (await getCollection("demos")).sort((a, b) => a.data.order - b.dat
     <p>
       Each page is a short write-up plus a working demo. The first click
       states the download size, then fetches quantized ONNX weights from the
-      Hugging Face CDN and caches them in IndexedDB. Inference happens in a
+      Hugging Face CDN and caches them in the browser. Inference happens in a
       Web Worker: WebGPU when the browser can initialize it, WASM on CPU
       otherwise.
     </p>
