@@ -1,6 +1,12 @@
 # LOCAL-AI-LAB
 
-A portfolio of Hugging Face models running entirely in your browser. No backend, no API keys, no data leaving your device: every demo downloads a model straight from the Hugging Face CDN and runs inference on your own machine, using WebGPU when it's available and falling back to WASM when it's not.
+A collection of experiments exploring local AI inference in the browser using open-source models from Hugging Face.
+
+This repository documents what I learn while experimenting with AI models that can run locally, without relying on external inference APIs, API keys, or sending data to a server. Each experiment combines a short technical write-up with a working demo.
+
+Every demo downloads quantized model weights directly from the Hugging Face CDN and runs inference on your own machine. Models are cached in the browser and inference runs in a Web Worker, using WebGPU when available and WASM as a CPU fallback.
+
+The goal is to explore, test, and document different approaches to running AI models locally in the browser.
 
 ## Stack
 
