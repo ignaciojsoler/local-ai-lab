@@ -1,5 +1,7 @@
 # Local AI Lab
 
+Live site: [localailab.vercel.app](https://localailab.vercel.app)
+
 A collection of experiments exploring local AI inference in the browser using open-source models from Hugging Face.
 
 This repository documents what I learn while experimenting with AI models that can run locally, without relying on external inference APIs, API keys, or sending data to a server. Each experiment combines a short technical write-up with a working demo.
@@ -55,7 +57,9 @@ The experiment then shows up on `/experiments` and on the home page, both of whi
 
 ## Deployment
 
-The site builds to static HTML/JS/CSS (`output: "static"` in `astro.config.mjs`, no adapter) and is deployed on Vercel. `vercel.json` sets:
+The site is live at [localailab.vercel.app](https://localailab.vercel.app).
+
+It builds to static HTML/JS/CSS (`output: "static"` in `astro.config.mjs`, no adapter) and is deployed on Vercel. `vercel.json` sets:
 
 ```json
 {
