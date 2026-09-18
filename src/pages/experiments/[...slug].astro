@@ -6,7 +6,7 @@ import CodeTabs from "@components/demo-kit/CodeTabs.astro";
 import { ModelCacheStatus } from "@components/demo-kit/ModelCacheStatus";
 
 export async function getStaticPaths() {
-  const demos = await getCollection("demos");
+  const demos = await getCollection("experiments");
   return demos.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
 }
 
@@ -26,7 +26,7 @@ const specs = [
 <PageLayout title={title} description={summary}>
   <article class="docs-article">
     <ol class="breadcrumb eyebrow">
-      <li><a href="/demos">Experiments</a></li>
+      <li><a href="/experiments">Experiments</a></li>
       <li>{category}</li>
       <li>{entry.id}</li>
     </ol>

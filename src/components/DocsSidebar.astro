@@ -3,14 +3,14 @@ import type { CollectionEntry } from "astro:content";
 import { SITE } from "@consts";
 
 type Props = {
-  demos: CollectionEntry<"demos">[];
+  demos: CollectionEntry<"experiments">[];
   currentPath: string;
 };
 
 const { demos, currentPath } = Astro.props;
 
 /** One sub-group per task family, in the order the demos are listed. */
-const categories: Array<{ name: string; entries: CollectionEntry<"demos">[] }> = [];
+const categories: Array<{ name: string; entries: CollectionEntry<"experiments">[] }> = [];
 for (const entry of demos) {
   const group = categories.find((candidate) => candidate.name === entry.data.category);
   if (group) group.entries.push(entry);
@@ -33,7 +33,7 @@ for (const entry of demos) {
       <div class="lab-rail-group">
         <p class="lab-rail-category">{category.name}</p>
         {category.entries.map((entry) => {
-          const href = `/demos/${entry.id}`;
+          const href = `/experiments/${entry.id}`;
           return (
             <a href={href} class={currentPath === href ? "is-active" : undefined}>
               {entry.data.title}

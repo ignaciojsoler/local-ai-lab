@@ -3,7 +3,7 @@ import { getCollection } from "astro:content";
 import PageLayout from "@layouts/PageLayout.astro";
 import LibraryMeta from "@components/LibraryMeta.astro";
 
-const demos = (await getCollection("demos")).sort((a, b) => a.data.order - b.data.order);
+const demos = (await getCollection("experiments")).sort((a, b) => a.data.order - b.data.order);
 ---
 
 <PageLayout
@@ -19,7 +19,7 @@ const demos = (await getCollection("demos")).sort((a, b) => a.data.order - b.dat
     <ul class="demo-index">
       {demos.map((entry) => (
         <li>
-          <a href={`/demos/${entry.id}`}>
+          <a href={`/experiments/${entry.id}`}>
             <h2>{entry.data.title}</h2>
             <p>{entry.data.summary}</p>
           </a>

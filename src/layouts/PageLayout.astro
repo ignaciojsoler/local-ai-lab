@@ -10,9 +10,9 @@ type Props = {
 };
 
 const { title, description } = Astro.props;
-const demos = (await getCollection("demos")).sort((a, b) => a.data.order - b.data.order);
+const demos = (await getCollection("experiments")).sort((a, b) => a.data.order - b.data.order);
 const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/";
-const onDemos = currentPath.startsWith("/demos");
+const onDemos = currentPath.startsWith("/experiments");
 ---
 
 <!doctype html>
@@ -42,7 +42,7 @@ const onDemos = currentPath.startsWith("/demos");
           <a class="lab-wordmark" href="/">{SITE.WORDMARK}</a>
           <nav class="lab-topnav" aria-label="Sections">
             <a href="/" class={currentPath === "/" ? "is-active" : undefined}>Overview</a>
-            <a href="/demos" class={onDemos ? "is-active" : undefined}>Experiments</a>
+            <a href="/experiments" class={onDemos ? "is-active" : undefined}>Experiments</a>
             <a href={SITE.SOURCE} rel="noopener noreferrer" target="_blank">Source</a>
           </nav>
         </div>
