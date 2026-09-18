@@ -4,24 +4,31 @@ import PageLayout from "@layouts/PageLayout.astro";
 import LibraryMeta from "@components/LibraryMeta.astro";
 import { SITE, HOME, SOCIALS } from "@consts";
 
-const demos = (await getCollection("experiments")).sort((a, b) => a.data.order - b.data.order);
+const demos = (await getCollection("experiments")).sort(
+  (a, b) => a.data.order - b.data.order,
+);
 ---
 
 <PageLayout title={HOME.TITLE} description={HOME.DESCRIPTION}>
   <article class="docs-article">
     <h1>{SITE.NAME}</h1>
     <p class="lead">
-      Hugging Face models that download into this tab and run on your machine.
-      There is no inference API, no key, and no text or image leaves the browser.
+      A collection of experiments exploring local AI inference in the browser
+      using open-source models from Hugging Face.
+      <br />
+      The purpose of this repository is to document what I learn while experimenting
+      with AI models that can run locally, without relying on external inference APIs,
+      API keys, or sending data to a server. Each experiment is both a short technical
+      write-up and a working demo.
     </p>
 
     <h2 id="how-it-runs">How it runs</h2>
     <p>
-      Each page is a short write-up plus a working demo. The first click
-      states the download size, then fetches quantized ONNX weights from the
+      Each page focuses on a specific AI experiment. The first interaction shows
+      the model's download size, then downloads quantized ONNX weights from the
       Hugging Face CDN and caches them in the browser. Inference happens in a
-      Web Worker: WebGPU when the browser can initialize it, WASM on CPU
-      otherwise.
+      Web Worker: WebGPU when the browser can initialize it, with WASM as a CPU
+      fallback.
     </p>
     <p>
       Pick an experiment, load it once, and try the samples. The Python and
@@ -31,24 +38,28 @@ const demos = (await getCollection("experiments")).sort((a, b) => a.data.order -
 
     <h2 id="experiments">Experiments</h2>
     <ul class="demo-index">
-      {demos.map((entry) => (
-        <li>
-          <a href={`/experiments/${entry.id}`}>
-            <h2>{entry.data.title}</h2>
-            <p>{entry.data.summary}</p>
-          </a>
-        </li>
-      ))}
+      {
+        demos.map((entry) => (
+          <li>
+            <a href={`/experiments/${entry.id}`}>
+              <h2>{entry.data.title}</h2>
+              <p>{entry.data.summary}</p>
+            </a>
+          </li>
+        ))
+      }
     </ul>
 
     <h2 id="contact">Contact</h2>
     <p>
-      {SOCIALS.map((social, index) => (
-        <>
-          {index > 0 && " · "}
-          <a href={social.HREF}>{social.NAME}</a>
-        </>
-      ))}
+      {
+        SOCIALS.map((social, index) => (
+          <>
+            {index > 0 && " · "}
+            <a href={social.HREF}>{social.NAME}</a>
+          </>
+        ))
+      }
       {" · "}
       <a href={`mailto:${SITE.EMAIL}`}>{SITE.EMAIL}</a>
     </p>

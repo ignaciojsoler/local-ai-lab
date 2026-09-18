@@ -1,8 +1,8 @@
 import type { Site, Metadata, Socials } from "@types";
 
 export const SITE: Site = {
-  NAME: "Local AI Lab",
-  WORDMARK: "HF/LOCAL-LAB",
+  NAME: "LOCAL AI LAB",
+  WORDMARK: "LOCAL-AI-LAB",
   SOURCE: "https://github.com/ignaciojsoler/local-ai-lab",
   EMAIL: "ignaciojsoler@gmail.com",
 };
