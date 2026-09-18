@@ -15,7 +15,8 @@ type LoadMessage = {
 type RunMessage = {
   type: "run";
   id: number;
-  input: unknown;
+  /** Positional pipeline arguments, in transformers.js order. */
+  args: unknown[];
   options?: Record<string, unknown>;
 };
 
@@ -48,7 +49,10 @@ self.addEventListener("message", async (event: MessageEvent<IncomingMessage>) =>
     if (message.type === "run") {
       if (!task) throw new Error("Model is not loaded yet");
       const startedAt = performance.now();
-      const output = await task(message.input, message.options);
+      // Spread rather than pass a single input: several pipelines take
+      // positional arguments beyond the first (zero-shot classification
+      // takes its candidate labels there, not in the options object).
+      const output = await task(...message.args, message.options ?? {});
       self.postMessage({
         type: "result",
         id: message.id,

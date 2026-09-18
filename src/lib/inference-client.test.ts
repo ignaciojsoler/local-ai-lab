@@ -38,6 +38,18 @@ function lastId(posted: unknown[]): number {
 }
 
 describe("createInferenceClient", () => {
+  it("forwards every positional argument the pipeline takes", () => {
+    const { client, fake } = createClient();
+
+    void client.run(["a complaint", ["shipping", "billing"]], { multi_label: true });
+
+    expect(fake.posted[fake.posted.length - 1]).toMatchObject({
+      type: "run",
+      args: ["a complaint", ["shipping", "billing"]],
+      options: { multi_label: true },
+    });
+  });
+
   it("sends a load message carrying the task, model, and device", async () => {
     const { client, fake } = createClient();
 
@@ -85,7 +97,7 @@ describe("createInferenceClient", () => {
     fake.emit({ type: "ready", id: lastId(fake.posted) });
     await loading;
 
-    const running = client.run<{ label: string }>("some text");
+    const running = client.run<{ label: string }>(["some text"]);
     const runId = lastId(fake.posted);
     fake.emit({ type: "result", id: runId, output: { label: "POSITIVE" }, durationMs: 31 });
 
@@ -102,7 +114,7 @@ describe("createInferenceClient", () => {
     fake.emit({ type: "ready", id: lastId(fake.posted) });
     await loading;
 
-    const running = client.run("some text");
+    const running = client.run(["some text"]);
     const runId = lastId(fake.posted);
     fake.emit({ type: "error", id: runId, message: "inference failed" });
 
@@ -122,7 +134,7 @@ describe("createInferenceClient", () => {
     const loading = client.load();
     const loadId = lastId(fake.posted);
 
-    const running = client.run("some text");
+    const running = client.run(["some text"]);
     const runId = lastId(fake.posted);
 
     fake.emit({ type: "error", id: runId, message: "inference failed" });
@@ -139,9 +151,9 @@ describe("createInferenceClient", () => {
     fake.emit({ type: "ready", id: lastId(fake.posted) });
     await loading;
 
-    const runningA = client.run<{ label: string }>("text a");
+    const runningA = client.run<{ label: string }>(["text a"]);
     const idA = lastId(fake.posted);
-    const runningB = client.run<{ label: string }>("text b");
+    const runningB = client.run<{ label: string }>(["text b"]);
     const idB = lastId(fake.posted);
 
     expect(idA).not.toBe(idB);
