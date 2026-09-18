@@ -3,6 +3,7 @@ import { DemoShell } from "../demo-kit/DemoShell";
 import { ConfidenceBar } from "../demo-kit/ConfidenceBar";
 import { useModel } from "../demo-kit/useModel";
 import { PendingResult } from "../demo-kit/PendingResult";
+import { useAutoRun } from "../demo-kit/useAutoRun";
 import { rankBySimilarity, type EmbeddingMatrix, type RankedDocument } from "../../lib/similarity";
 
 /**
@@ -56,6 +57,10 @@ export default function SemanticSearchDemo({
     if (!output) return;
     setRanked(rankBySimilarity(output, documents));
   }
+
+  // Weights already on the device mean there is nothing to consent to, so
+  // the page answers its own default question instead of waiting.
+  useAutoRun(modelState.status, () => void search());
 
   return (
     <DemoShell model={modelState} sizeLabel={sizeLabel}>

@@ -3,6 +3,7 @@ import { DemoShell } from "../demo-kit/DemoShell";
 import { ConfidenceBar } from "../demo-kit/ConfidenceBar";
 import { useModel } from "../demo-kit/useModel";
 import { PendingResult } from "../demo-kit/PendingResult";
+import { useAutoRun } from "../demo-kit/useAutoRun";
 
 type ZeroShotOutput = { sequence: string; labels: string[]; scores: number[] };
 
@@ -41,6 +42,10 @@ export default function ZeroShotDemo({
     if (!output) return;
     setResults(output.labels.map((label, index) => ({ label, score: output.scores[index] })));
   }
+
+  // Weights already on the device mean there is nothing to consent to, so
+  // the page answers its own default question instead of waiting.
+  useAutoRun(modelState.status, () => void classify());
 
   return (
     <DemoShell model={modelState} sizeLabel={sizeLabel}>
