@@ -10,7 +10,7 @@ type Prediction = { label: string; score: number };
 const SAMPLES = [
   "/samples/dog.jpg",
   "/samples/espresso.jpg",
-  "/samples/bicycle.jpg",
+  "/samples/zebras.jpg",
 ];
 
 export default function ImageClassificationDemo({

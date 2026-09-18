@@ -65,6 +65,28 @@ runtime.
 4. The model outputs a label (`POSITIVE` or `NEGATIVE`) with a confidence
    score, which the page renders immediately.
 
+### It is never unsure
+
+The classification head produces two logits and a softmax turns them into two
+probabilities that sum to 1. Nothing in that arrangement can express doubt,
+and in practice this model does not: every one of these comes back at 0.98 or
+above.
+
+| Review | Verdict |
+| --- | --- |
+| "It was okay." | POSITIVE 1.00 |
+| "Not the best, not the worst." | NEGATIVE 0.99 |
+| "Great atmosphere, awful food." | POSITIVE 1.00 |
+| "The food was excellent but the service was terrible." | NEGATIVE 0.99 |
+
+The last two are genuinely balanced sentences, and the model picks a side with
+full confidence either way. Read the confidence score as *which side won*, not
+as *how sure the model is* — there is no calibrated uncertainty in it to read.
+
+This is why the samples above are named for what the review is rather than for
+how positive it is. A sample called "mixed" would promise a middle the model
+has no way to return.
+
 Under the hood, DistilBERT is the model doing the classifying, fine-tuned on
 SST-2. Your text is first tokenized into subword ids, which are fed through
 the transformer encoder to produce contextual representations of the whole

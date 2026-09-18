@@ -44,7 +44,7 @@ describe("SentimentDemo", () => {
 
     // The chip says what the review is, not where it sits in the list.
     expect(screen.getByRole("button", { name: "glowing" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "mixed" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "complaint_first" })).toBeInTheDocument();
   });
 
   it("fills the textarea with the sample that was picked", async () => {
