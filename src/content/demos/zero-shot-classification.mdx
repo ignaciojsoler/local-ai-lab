@@ -3,7 +3,7 @@ title: "Zero-shot classification"
 summary: "Invent your own categories and classify text into them, with no training data and no fine-tuning."
 task: "zero-shot-classification"
 model: "Xenova/nli-deberta-v3-xsmall"
-sizeLabel: "~87 MB"
+sizeLabel: "~96 MB"
 category: "Language"
 order: 3
 ---
@@ -61,7 +61,9 @@ single ability, entailment scoring, turns out to be enough to build a
 general-purpose text classifier with no extra training at all, which is
 exactly the trick this demo shows off. The build used here is the
 [`Xenova/nli-deberta-v3-xsmall`](https://huggingface.co/Xenova/nli-deberta-v3-xsmall)
-ONNX export, quantized to around 87 MB, prepared for the transformers.js
+ONNX export, whose weights file is around 87 MB. The button quotes ~96 MB
+because this model's tokenizer is an unusually large 9 MB of its own. It is
+prepared for the transformers.js
 runtime.
 
 ## How it works

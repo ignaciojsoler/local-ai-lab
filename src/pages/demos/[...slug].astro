@@ -3,6 +3,7 @@ import { getCollection, render } from "astro:content";
 import PageLayout from "@layouts/PageLayout.astro";
 import DemoIsland from "@components/DemoIsland.astro";
 import CodeTabs from "@components/demo-kit/CodeTabs.astro";
+import { ModelCacheStatus } from "@components/demo-kit/ModelCacheStatus";
 
 export async function getStaticPaths() {
   const demos = await getCollection("demos");
@@ -58,13 +59,11 @@ const specs = [
       <span>{task}</span>
     </div>
     <div class="lab-meta-row">
-      <span>Weights</span>
+      <span>Download</span>
       <span>{sizeLabel}</span>
     </div>
     <div class="lab-meta-rule"></div>
-    <p class="eyebrow">
-      Weights (local) <span class="signal-dot" aria-hidden="true"></span>
-    </p>
+    <ModelCacheStatus client:load model={model} />
     <a
       class="eyebrow"
       href={`https://huggingface.co/${model}`}

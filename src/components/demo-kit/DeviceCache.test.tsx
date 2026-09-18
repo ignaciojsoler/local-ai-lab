@@ -20,7 +20,7 @@ describe("DeviceCache", () => {
 
   it("counts only the models actually on the device and sums their size", async () => {
     vi.spyOn(cache, "cachedModelSize").mockImplementation(async (model) =>
-      model === "Xenova/c" ? null : 33_554_432,
+      model === "Xenova/c" ? null : 32_000_000,
     );
 
     render(<DeviceCache models={MODELS} />);
@@ -29,7 +29,7 @@ describe("DeviceCache", () => {
   });
 
   it("clears every model once the offer is confirmed, then re-measures", async () => {
-    const size = vi.spyOn(cache, "cachedModelSize").mockResolvedValue(33_554_432);
+    const size = vi.spyOn(cache, "cachedModelSize").mockResolvedValue(32_000_000);
     const clear = vi.spyOn(cache, "clearModelCache").mockResolvedValue(1);
 
     render(<DeviceCache models={MODELS} />);

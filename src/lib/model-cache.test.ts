@@ -4,7 +4,7 @@ import { cachedModelSize, clearModelCache, formatBytes, isModelCached } from "./
 const MODEL = "Xenova/test-model";
 
 /** A Cache Storage stub holding the URLs given, keyed like the real one. */
-function stubCaches(urls: string[], bytesPerFile = 1024 * 1024) {
+function stubCaches(urls: string[], bytesPerFile = 1_000_000) {
   const keys = urls.map((url) => ({ url }) as Request);
   const deleted: string[] = [];
 
@@ -50,7 +50,7 @@ describe("model-cache", () => {
       `https://huggingface.co/${MODEL}/resolve/main/onnx/model.onnx`,
       `https://huggingface.co/${MODEL}/resolve/main/tokenizer.json`,
     ]);
-    await expect(cachedModelSize(MODEL)).resolves.toBe(2 * 1024 * 1024);
+    await expect(cachedModelSize(MODEL)).resolves.toBe(2_000_000);
   });
 
   it("deletes only the model's own entries", async () => {
@@ -63,8 +63,10 @@ describe("model-cache", () => {
     expect(deleted).toEqual([`https://huggingface.co/${MODEL}/resolve/main/onnx/model.onnx`]);
   });
 
-  it("formats sizes the way a download prompt would", () => {
-    expect(formatBytes(68_157_440)).toBe("65 MB");
-    expect(formatBytes(2 * 1024 ** 3)).toBe("2.0 GB");
+  it("counts megabytes the way the model's own download page does", () => {
+    // 10^6 bytes to the MB, matching Hugging Face — not 1024^2, which would
+    // print "65 MB" here and disagree with the size stated on the button.
+    expect(formatBytes(68_290_000)).toBe("68 MB");
+    expect(formatBytes(2.4e9)).toBe("2.4 GB");
   });
 });
