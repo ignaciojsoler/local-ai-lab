@@ -44,9 +44,21 @@ CSS percentages, which track the image through every viewport with no redraw.
 It is also where download size and inference cost visibly come apart — half
 the classifier's weights, roughly five times its latency on WASM.
 
-Planned next: **handwriting OCR** (`Xenova/trocr-small-handwritten`, ~68 MB)
-for generated text produced token by token. Six is the intended total: past
-that, an addition is another model rather than another claim.
+**Translation** — `Xenova/opus-mt-en-es`, ~119 MB, shipped. Generated output,
+produced a token at a time and streamed out of the worker as it is written.
+It is also the only demo a reader can check without trusting the page: both
+sides of the translation are on screen.
+
+Six is the intended total: past that, an addition is another model rather than
+another claim.
+
+Handwriting OCR (`trocr-small-handwritten`) was built for this slot and
+abandoned after testing. The model reads one tightly cropped line and nothing
+else: a two-line note returned "The Washington Post", and a photo whose text
+did not fill the frame returned "a successful venture for the" — its processor
+squashes every input to 384x384, so anything smaller than the frame becomes
+unreadable. A demo that only works on an input the visitor is unlikely to
+produce is a demo that looks broken.
 
 Speech recognition was considered and dropped. `whisper-tiny.en` is
 English-only and would mistranscribe the author's own spoken Spanish in front
