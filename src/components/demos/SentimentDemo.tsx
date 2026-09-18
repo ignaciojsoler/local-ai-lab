@@ -11,10 +11,9 @@ type Prediction = { label: string; score: number };
  * Restaurant reviews, because the task has to be legible before the result
  * is: everyone knows what a review is and what a good one sounds like.
  *
- * Each sample is named after what it demonstrates rather than its position,
- * and each is one this model reads correctly — `complaint_first` in
- * particular, where the grumbling about the wait does not drag the verdict
- * negative.
+ * Each sample is named after what the review is rather than after its
+ * position in the list, and each one is unambiguous: this model answers with
+ * a single label and no shades between, so the samples do not promise any.
  */
 const SAMPLES = [
   {
@@ -26,11 +25,8 @@ const SAMPLES = [
     text: "There was a fly in my soup. An actual fly. In my actual soup.",
   },
   {
-    // Named for its shape, not for a verdict the model cannot give: the
-    // review opens with a complaint and ends on a recommendation, and the
-    // model resolves it correctly instead of counting the negative words.
-    name: "complaint_first",
-    text: "Took forty minutes to arrive, but honestly it was worth the wait.",
+    name: "great_service",
+    text: "The waiter spotted our anniversary and brought dessert on the house.",
   },
 ];
 
