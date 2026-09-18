@@ -1,5 +1,10 @@
 /// <reference lib="webworker" />
-import { pipeline, env, type PipelineType } from "@huggingface/transformers";
+import {
+  pipeline,
+  env,
+  TextStreamer,
+  type PipelineType,
+} from "@huggingface/transformers";
 import { toStructuredCloneable } from "../worker-output";
 
 // Weights come from the Hugging Face CDN; nothing is served from our origin.
@@ -19,6 +24,8 @@ type RunMessage = {
   /** Positional pipeline arguments, in transformers.js order. */
   args: unknown[];
   options?: Record<string, unknown>;
+  /** Post the text back as the decoder emits it, for generative tasks. */
+  stream?: boolean;
 };
 
 type IncomingMessage = LoadMessage | RunMessage;
@@ -50,10 +57,26 @@ self.addEventListener("message", async (event: MessageEvent<IncomingMessage>) =>
     if (message.type === "run") {
       if (!task) throw new Error("Model is not loaded yet");
       const startedAt = performance.now();
+      // A generative pipeline can report its own progress: the streamer is
+      // handed the pipeline's tokenizer and posts each decoded chunk as it
+      // is produced, so the page fills in rather than waiting in silence.
+      const streamer = message.stream
+        ? new TextStreamer(task.tokenizer, {
+            skip_prompt: true,
+            skip_special_tokens: true,
+            callback_function: (text: string) => {
+              self.postMessage({ type: "partial", id: message.id, text });
+            },
+          })
+        : undefined;
+
       // Spread rather than pass a single input: several pipelines take
       // positional arguments beyond the first (zero-shot classification
       // takes its candidate labels there, not in the options object).
-      const output = await task(...message.args, message.options ?? {});
+      const output = await task(...message.args, {
+        ...(message.options ?? {}),
+        ...(streamer ? { streamer } : {}),
+      });
       self.postMessage({
         type: "result",
         id: message.id,

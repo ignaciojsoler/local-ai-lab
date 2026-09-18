@@ -30,7 +30,11 @@ export type UseModelState = {
   cacheSize: number | null;
   load(): Promise<void>;
   /** `args` are the pipeline's positional arguments, in transformers.js order. */
-  run<T>(args: unknown[], options?: Record<string, unknown>): Promise<T | null>;
+  run<T>(
+    args: unknown[],
+    options?: Record<string, unknown>,
+    onPartial?: (text: string) => void,
+  ): Promise<T | null>;
   clear(): Promise<void>;
 };
 
@@ -136,7 +140,11 @@ export function useModel(config: UseModelConfig): UseModelState {
     };
   }, [config.model]);
 
-  const run = useCallback(async <T,>(args: unknown[], options?: Record<string, unknown>) => {
+  const run = useCallback(async <T,>(
+    args: unknown[],
+    options?: Record<string, unknown>,
+    onPartial?: (text: string) => void,
+  ) => {
     const client = clientRef.current;
     if (!client) return null;
 
@@ -144,7 +152,7 @@ export function useModel(config: UseModelConfig): UseModelState {
     setError(null);
 
     try {
-      const result = await client.run<T>(args, options);
+      const result = await client.run<T>(args, options, onPartial);
       setDurationMs(result.durationMs);
       setStatus("ready");
       return result.output;
