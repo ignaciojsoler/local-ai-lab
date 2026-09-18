@@ -1,0 +1,121 @@
+---
+title: "Object detection"
+summary: "Find every object in a photo and draw a box around it, with the boxes computed on your own machine."
+task: "object-detection"
+model: "Xenova/detr-resnet-50"
+sizeLabel: "~43 MB"
+category: "Vision"
+order: 5
+---
+
+export const python = String.raw`from transformers import pipeline
+
+detector = pipeline("object-detection", model="facebook/detr-resnet-50")
+
+results = detector("sample_image.jpg", threshold=0.5)
+
+for r in results:
+    box = r["box"]
+    print(f"{r['label']:<10} {r['score']:.2f}  {box}")
+# dog        0.99  {'xmin': 79, 'ymin': 61, 'xmax': 410, 'ymax': 495}`;
+
+export const javascript = String.raw`import { pipeline } from "@huggingface/transformers";
+
+const detector = await pipeline("object-detection", "Xenova/detr-resnet-50");
+
+// percentage: true returns 0..1 coordinates, so the boxes can be drawn over
+// the image at whatever size it happens to be displayed.
+const results = await detector("sample_image.jpg", {
+  threshold: 0.5,
+  percentage: true,
+});
+
+for (const { label, score, box } of results) {
+  console.log(label, score.toFixed(2), box);
+}
+// dog 0.99 { xmin: 0.16, ymin: 0.12, xmax: 0.83, ymax: 0.99 }`;
+
+## Implementation
+
+The same pipeline can be called from either Python or JavaScript.
+
+<CodeTabs python={python} javascript={javascript} />
+
+## What this does
+
+Classification answers "what is this a picture of". Detection answers a harder
+question: **what things are in it, and where**. Every object the model is
+confident about gets a box drawn around it and a label, and the same photo can
+contain several.
+
+Compare it with [image classification](/demos/image-classification), which
+takes the same two photos. That model returns one ranked list for the whole
+image and has no way to say "there are three things here, and here is where".
+The espresso sample is the clearest case: the classifier gives you one label
+for the picture, while this one separates the cup, the spoon and the table.
+
+## The model
+
+`detr-resnet-50` is DETR — DEtection TRansformer — a model Facebook Research
+published in 2020 that replaced the hand-built machinery detectors used to
+need. Earlier architectures proposed thousands of candidate regions and then
+spent a second stage filtering near-duplicates with a hand-tuned rule called
+non-maximum suppression. DETR removes that stage entirely.
+
+The build here is the [`Xenova/detr-resnet-50`](https://huggingface.co/Xenova/detr-resnet-50)
+ONNX export at roughly 43 MB quantized, which makes it **half the size of the
+image classifier** on this site despite answering the harder question.
+
+## How it works
+
+1. A ResNet-50 backbone turns the photo into a grid of image features.
+2. A transformer encoder lets every position in that grid attend to every
+   other one, so the model reasons about the whole scene at once rather than
+   about patches in isolation.
+3. The decoder starts from a fixed set of 100 learned **object queries**. Each
+   query is a slot that will end up holding either one object or nothing.
+4. Every slot outputs a class and four box coordinates. Slots that found
+   nothing output the special class "no object", and the demo above drops
+   anything below a confidence of 0.5.
+
+The elegant part is how DETR is trained. Predictions and real objects are
+matched one-to-one with the Hungarian algorithm, so exactly one slot is held
+responsible for each object in the image. A model trained that way cannot
+produce two boxes for the same dog, because during training the duplicate was
+never the one rewarded. That is what makes the filtering stage unnecessary.
+
+The boxes come back as fractions of the image rather than pixels, which is why
+the overlay on the photo is plain CSS: each box is positioned as a percentage
+of whatever size the image is rendered at, and stays correct when the layout
+changes.
+
+## What it costs to run
+
+Watch the badge above the demo. On a CPU falling back to WebAssembly this
+model takes **several seconds** per photo, where the image classifier on this
+site answers in a few hundred milliseconds — even though DETR's download is
+half the size.
+
+File size and inference cost are different things, and this page is a good
+place to see them come apart. The classifier makes one pass and produces one
+vector of class scores. DETR runs a transformer encoder over the whole feature
+grid, where every position attends to every other, and then decodes 100 object
+queries against it. The weights are smaller; the work is not.
+
+On a machine with WebGPU the same run is considerably faster, which is exactly
+what the backend badge is there to tell you.
+
+## Limitations
+
+DETR is trained on COCO, which has **80 everyday classes** — people, animals,
+vehicles, furniture, kitchen items. It has no vocabulary beyond them. Show it
+something outside that list and it will either stay quiet or force the closest
+class it knows onto it.
+
+The 100-slot design is also a hard ceiling: a photo of a stadium crowd cannot
+return more than 100 boxes, however many people are in it.
+
+Small objects are its known weakness. The scene is reasoned about at the
+resolution of the feature grid, so something occupying a few pixels often
+never makes the confidence threshold. Lower the threshold to see it, and the
+noise arrives with it.

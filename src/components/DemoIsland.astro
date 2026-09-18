@@ -3,6 +3,7 @@ import SentimentDemo from "@components/demos/SentimentDemo";
 import ImageClassificationDemo from "@components/demos/ImageClassificationDemo";
 import ZeroShotDemo from "@components/demos/ZeroShotDemo";
 import SemanticSearchDemo from "@components/demos/SemanticSearchDemo";
+import ObjectDetectionDemo from "@components/demos/ObjectDetectionDemo";
 
 type Props = {
   task: string;
@@ -25,5 +26,8 @@ const { task, model, sizeLabel } = Astro.props;
   )}
   {task === "feature-extraction" && (
     <SemanticSearchDemo client:load model={model} sizeLabel={sizeLabel} />
+  )}
+  {task === "object-detection" && (
+    <ObjectDetectionDemo client:load model={model} sizeLabel={sizeLabel} />
   )}
 </section>

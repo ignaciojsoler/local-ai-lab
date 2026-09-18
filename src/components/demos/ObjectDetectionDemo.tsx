@@ -1,0 +1,158 @@
+import { useEffect, useRef, useState } from "react";
+import { DemoShell } from "../demo-kit/DemoShell";
+import { ConfidenceBar } from "../demo-kit/ConfidenceBar";
+import { useModel } from "../demo-kit/useModel";
+import { PendingResult } from "../demo-kit/PendingResult";
+import { toOverlayRect, type DetectionBox } from "../../lib/boxes";
+
+type Detection = { label: string; score: number; box: DetectionBox };
+
+/**
+ * Two scenes, one object and three. The street photo the classifier uses is
+ * left out here: it holds eleven overlapping bicycles, cars and people, and
+ * the boxes pile into something you decode rather than read.
+ */
+const SAMPLES = ["/samples/dog.jpg", "/samples/espresso.jpg"];
+
+/** Below this the boxes are mostly noise, and the picture becomes unreadable. */
+const THRESHOLD = 0.5;
+
+export default function ObjectDetectionDemo({
+  model,
+  sizeLabel,
+}: {
+  model: string;
+  sizeLabel: string;
+}) {
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [detections, setDetections] = useState<Detection[] | null>(null);
+
+  // Only an uploaded file's object URL needs revoking, and only once it is no
+  // longer the one on screen, so it is tracked apart from `imageUrl`.
+  const objectUrlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+        objectUrlRef.current = null;
+      }
+    };
+  }, []);
+
+  const modelState = useModel({ task: "object-detection", model });
+
+  async function detect(url: string) {
+    setImageUrl(url);
+    setDetections(null);
+    // Percentages, not pixels: the overlay is laid out in CSS over whatever
+    // size the image happens to render at.
+    const output = await modelState.run<Detection[]>([url], {
+      threshold: THRESHOLD,
+      percentage: true,
+    });
+    setDetections(output ?? []);
+  }
+
+  function handleUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    const url = URL.createObjectURL(file);
+    objectUrlRef.current = url;
+    void detect(url);
+  }
+
+  const ranked = detections ? [...detections].sort((a, b) => b.score - a.score) : null;
+
+  return (
+    <DemoShell model={modelState} sizeLabel={sizeLabel}>
+      <div className="demo-columns">
+        <div>
+          <div className="demo-col-head">
+            <span className="eyebrow">Data input</span>
+            <label className="link-quiet cursor-pointer">
+              Upload image
+              <input type="file" accept="image/*" onChange={handleUpload} className="sr-only" />
+            </label>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            {imageUrl ? (
+              <div className="detection-frame">
+                <img src={imageUrl} alt="" />
+                {ranked?.map((detection) => {
+                  const rect = toOverlayRect(detection.box);
+                  return (
+                    <span
+                      key={`${detection.label}-${rect.left}-${rect.top}`}
+                      data-testid="detection-box"
+                      className="detection-box"
+                      style={{
+                        left: `${rect.left}%`,
+                        top: `${rect.top}%`,
+                        width: `${rect.width}%`,
+                        height: `${rect.height}%`,
+                      }}
+                    >
+                      <span className="detection-tag">{detection.label}</span>
+                    </span>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="eyebrow">Pick a sample or upload an image</p>
+            )}
+
+            <div className="flex flex-wrap gap-2">
+              {SAMPLES.map((src) => (
+                <button
+                  key={src}
+                  type="button"
+                  onClick={() => void detect(src)}
+                  className={src === imageUrl ? "chip is-active" : "chip"}
+                >
+                  {src.split("/").pop()}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div className="demo-col-head">
+            <span className="eyebrow">Detections</span>
+            <span className="eyebrow">
+              {modelState.status === "running"
+                ? "Detecting…"
+                : ranked
+                  ? `${ranked.length} found`
+                  : "Awaiting input"}
+            </span>
+          </div>
+
+          {ranked === null ? (
+            <PendingResult
+              running={modelState.status === "running"}
+              label="Scanning the image"
+            />
+          ) : ranked.length === 0 ? (
+            <p className="eyebrow">Nothing above the threshold of {THRESHOLD}</p>
+          ) : (
+            <ul className="score-list">
+              {ranked.map((detection, rank) => (
+                <li key={`${detection.label}-${rank}`}>
+                  <ConfidenceBar
+                    label={detection.label}
+                    score={detection.score}
+                    rank={rank}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </DemoShell>
+  );
+}
