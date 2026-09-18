@@ -18,12 +18,17 @@ export interface InferenceClient {
    * options object is always the pipeline's last parameter, never a carrier
    * for positional data.
    */
-  run<T>(args: unknown[], options?: Record<string, unknown>): Promise<RunResult<T>>;
+  run<T>(
+    args: unknown[],
+    options?: Record<string, unknown>,
+    onPartial?: (text: string) => void,
+  ): Promise<RunResult<T>>;
   dispose(): void;
 }
 
 type WorkerMessage =
   | { type: "progress"; id: number; file: string; progress: number }
+  | { type: "partial"; id: number; text: string }
   | { type: "ready"; id: number }
   | { type: "result"; id: number; output: unknown; durationMs: number }
   | { type: "error"; id: number; message: string };
@@ -46,6 +51,7 @@ type PendingRun = {
   kind: "run";
   resolve: (value: RunResult<never>) => void;
   reject: (error: Error) => void;
+  onPartial?: (text: string) => void;
 };
 
 type Pending = PendingLoad | PendingRun;
@@ -65,6 +71,11 @@ export function createInferenceClient(config: Config): InferenceClient {
         if (entry?.kind === "load") {
           entry.onProgress?.({ file: message.file, progress: message.progress });
         }
+        break;
+      case "partial":
+        // A run that has already settled is no longer in `pending`, so a
+        // partial arriving after it is dropped rather than replayed.
+        if (entry?.kind === "run") entry.onPartial?.(message.text);
         break;
       case "ready":
         if (entry?.kind === "load") {
@@ -105,15 +116,28 @@ export function createInferenceClient(config: Config): InferenceClient {
       });
     },
 
-    run<T>(args: unknown[], options?: Record<string, unknown>) {
+    run<T>(
+      args: unknown[],
+      options?: Record<string, unknown>,
+      onPartial?: (text: string) => void,
+    ) {
       const id = nextId++;
       return new Promise<RunResult<T>>((resolve, reject) => {
         pending.set(id, {
           kind: "run",
           resolve: resolve as (value: RunResult<never>) => void,
           reject,
+          onPartial,
         });
-        worker.postMessage({ type: "run", id, args, options });
+        // Streaming costs the worker a tokenizer-backed streamer, so it is
+        // only set up when something is actually listening for the text.
+        worker.postMessage({
+          type: "run",
+          id,
+          args,
+          options,
+          ...(onPartial ? { stream: true } : {}),
+        });
       });
     },
 

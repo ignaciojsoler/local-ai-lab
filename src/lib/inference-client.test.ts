@@ -38,6 +38,54 @@ function lastId(posted: unknown[]): number {
 }
 
 describe("createInferenceClient", () => {
+  it("asks the worker to stream when a partial handler is given", () => {
+    const { client, fake } = createClient();
+
+    void client.run(["photo.jpg"], undefined, () => {});
+
+    expect(fake.posted[fake.posted.length - 1]).toMatchObject({
+      type: "run",
+      stream: true,
+    });
+  });
+
+  it("does not ask for streaming when nothing is listening", () => {
+    const { client, fake } = createClient();
+
+    void client.run(["photo.jpg"]);
+
+    expect(fake.posted[fake.posted.length - 1]).not.toHaveProperty("stream", true);
+  });
+
+  it("reports text as it is generated, without settling the run", async () => {
+    const { client, fake } = createClient();
+    const seen: string[] = [];
+
+    const running = client.run<string>(["photo.jpg"], undefined, (text) => seen.push(text));
+    const id = lastId(fake.posted);
+
+    fake.emit({ type: "partial", id, text: "hand" });
+    fake.emit({ type: "partial", id, text: "handwritten" });
+    expect(seen).toEqual(["hand", "handwritten"]);
+
+    fake.emit({ type: "result", id, output: "handwritten note", durationMs: 900 });
+    await expect(running).resolves.toMatchObject({ output: "handwritten note" });
+  });
+
+  it("ignores a partial for a run that has already finished", async () => {
+    const { client, fake } = createClient();
+    const seen: string[] = [];
+
+    const running = client.run<string>(["photo.jpg"], undefined, (text) => seen.push(text));
+    const id = lastId(fake.posted);
+
+    fake.emit({ type: "result", id, output: "done", durationMs: 10 });
+    await running;
+    fake.emit({ type: "partial", id, text: "late" });
+
+    expect(seen).toEqual([]);
+  });
+
   it("forwards every positional argument the pipeline takes", () => {
     const { client, fake } = createClient();
 
