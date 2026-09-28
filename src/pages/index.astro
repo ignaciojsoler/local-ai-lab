@@ -2,27 +2,59 @@
 import { getCollection } from "astro:content";
 import PageLayout from "@layouts/PageLayout.astro";
 import LibraryMeta from "@components/LibraryMeta.astro";
+import HeroChip from "@components/HeroChip.astro";
 import { SITE, HOME, SOCIALS } from "@consts";
 
 const demos = (await getCollection("experiments")).sort(
   (a, b) => a.data.order - b.data.order,
 );
+
+const specs = [
+  { label: "Experiments", value: String(demos.length) },
+  { label: "Runtime", value: "WebGPU / WASM" },
+  { label: "Backend", value: "None" },
+  { label: "Data sent to a server", value: "Never" },
+];
 ---
 
 <PageLayout title={HOME.TITLE} description={HOME.DESCRIPTION}>
   <article class="docs-article">
-    <h1>{SITE.NAME}</h1>
-    <p class="lead">
-      A collection of experiments exploring local AI inference in the browser
-      using open-source models from Hugging Face.
-      <br />
-      The purpose of this repository is to document what I learn while experimenting
-      with AI models that can run locally, without relying on external inference APIs,
-      API keys, or sending data to a server. Each experiment is both a short technical
-      write-up and a working demo.
-    </p>
+    <section class="lab-hero">
+      <div class="lab-hero-copy">
+        <p class="eyebrow">Browser-local inference · No API keys</p>
+        <h1>{SITE.NAME}</h1>
+        <p class="lead">
+          A collection of experiments exploring local AI inference in the
+          browser using open-source models from Hugging Face.
+        </p>
+        <div class="lab-hero-actions">
+          <a class="btn btn-primary" href="/experiments">Browse experiments</a>
+          <a class="btn" href={SITE.SOURCE} rel="noopener noreferrer" target="_blank">
+            View source
+          </a>
+        </div>
+      </div>
+      <HeroChip />
+    </section>
+
+    <div class="spec-strip">
+      {
+        specs.map((spec) => (
+          <div>
+            <span class="eyebrow">{spec.label}</span>
+            <span class="spec-value">{spec.value}</span>
+          </div>
+        ))
+      }
+    </div>
 
     <h2 id="how-it-runs">How it runs</h2>
+    <p>
+      The purpose of this repository is to document what I learn while
+      experimenting with AI models that can run locally, without relying on
+      external inference APIs, API keys, or sending data to a server. Each
+      experiment is both a short technical write-up and a working demo.
+    </p>
     <p>
       Each page focuses on a specific AI experiment. The first interaction shows
       the model's download size, then downloads quantized ONNX weights from the

@@ -1085,6 +1085,127 @@ article.docs-article .demo-index li,
   color: var(--color-muted);
 }
 
+/* ---------------------------------------------------------------- hero -- */
+
+.lab-hero {
+  display: grid;
+  gap: 2.5rem;
+  align-items: center;
+  margin: 0 0 0.5rem;
+}
+
+.lab-hero-copy > .eyebrow {
+  margin-bottom: 0.9rem;
+}
+
+article.docs-article .lab-hero h1 {
+  margin-bottom: 0.9rem;
+}
+
+.lab-hero .lead {
+  max-width: 38ch;
+}
+
+.lab-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.6rem;
+}
+
+/* The article link rule is more specific than .btn, so the buttons have to
+   restate their own colours to keep the solid one legible. */
+article.docs-article .lab-hero-actions a.btn {
+  color: var(--color-text-heading);
+  text-decoration: none;
+}
+
+article.docs-article .lab-hero-actions a.btn-primary {
+  color: var(--color-on-accent);
+}
+
+/* The illustration is drawn the way a vector display draws: one hairline at a
+   time, never filled. Every stroke carries pathLength="1", so a single pair of
+   dash rules animates the whole figure regardless of its real length. */
+.hero-chip {
+  color: var(--color-text-heading);
+  min-width: 0;
+  max-width: 20rem;
+  margin-inline: auto;
+}
+
+.hero-chip svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.hero-chip path {
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
+.hero-chip-leg {
+  stroke: var(--color-muted);
+}
+
+.hero-chip-grid {
+  stroke: var(--color-border);
+}
+
+/* Reduced motion gets the finished drawing: the dash offset lives only inside
+   the no-preference query, so the default state is the complete figure. */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-chip path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: hero-chip-trace 0.6s linear forwards;
+  }
+
+  .hero-chip-frame {
+    animation-duration: 0.9s;
+    animation-delay: 0.05s;
+  }
+
+  .hero-chip-leg {
+    animation-delay: 0.75s;
+  }
+
+  .hero-chip-die {
+    animation-delay: 1.15s;
+  }
+
+  .hero-chip-grid {
+    animation-duration: 0.5s;
+    animation-delay: 1.45s;
+  }
+
+  /* A little scatter across the hatching so it fills in rather than snapping. */
+  .hero-chip-grid:nth-child(4n + 1) {
+    animation-delay: 1.55s;
+  }
+
+  .hero-chip-grid:nth-child(4n + 3) {
+    animation-delay: 1.7s;
+  }
+}
+
+@keyframes hero-chip-trace {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Side by side only once the shell's two rails leave the article enough room:
+   below this the copy column collapses to a dozen characters. */
+@media (min-width: 1240px) {
+  .lab-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 18rem);
+    gap: 2.75rem;
+  }
+}
+
 /* ---------------------------------------------------------- responsive -- */
 
 @media (min-width: 640px) {
