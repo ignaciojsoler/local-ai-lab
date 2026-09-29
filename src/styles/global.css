@@ -121,6 +121,7 @@ button:disabled {
   display: none;
   align-items: center;
   gap: 1.35rem;
+  margin-left: auto;
   min-width: 0;
   overflow-x: auto;
   scrollbar-width: none;
